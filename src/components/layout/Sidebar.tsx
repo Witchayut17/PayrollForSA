@@ -9,10 +9,12 @@ import {
   TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SidebarProps {
   activeView: string;
   onNavigate: (view: string) => void;
+  onLogout: () => void;
 }
 
 const navigation = [
@@ -24,7 +26,21 @@ const navigation = [
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar({ activeView, onNavigate }: SidebarProps) {
+export function Sidebar({ activeView, onNavigate, onLogout }: SidebarProps) {
+  const { user } = useAuth();
+  
+  const userInitials = user?.user_metadata?.full_name
+    ? user.user_metadata.full_name
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
+    : user?.email?.slice(0, 2).toUpperCase() || "U";
+
+  const displayName = user?.user_metadata?.full_name || user?.email || "User";
+  const employeeId = user?.user_metadata?.employee_id || "Employee";
+
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 gradient-sidebar border-r border-sidebar-border">
       <div className="flex h-full flex-col">
@@ -64,13 +80,17 @@ export function Sidebar({ activeView, onNavigate }: SidebarProps) {
         <div className="border-t border-sidebar-border p-4">
           <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent/50 p-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
-              JD
+              {userInitials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">John Doe</p>
-              <p className="text-xs text-sidebar-foreground/60 truncate">HR Administrator</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">{displayName}</p>
+              <p className="text-xs text-sidebar-foreground/60 truncate">{employeeId}</p>
             </div>
-            <button className="rounded-lg p-2 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors">
+            <button 
+              onClick={onLogout}
+              className="rounded-lg p-2 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
+              title="Logout"
+            >
               <LogOut className="h-4 w-4" />
             </button>
           </div>
