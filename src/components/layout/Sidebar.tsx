@@ -27,29 +27,29 @@ interface SidebarProps {
 
 // Employee navigation
 const employeeNavigation = [
-  { id: "payroll-review", label: "Payroll Review", icon: FileText },
-  { id: "payroll-history", label: "Payroll History", icon: History },
-  { id: "leave-ot-request", label: "Leave & OT Request", icon: Calendar },
-  { id: "profile", label: "Profile", icon: User },
+  { id: "payroll-review", label: "ตรวจสอบเงินเดือน", icon: FileText },
+  { id: "payroll-history", label: "ประวัติการจ่ายเงิน", icon: History },
+  { id: "leave-ot-request", label: "ขอลา/ขอ OT", icon: Calendar },
+  { id: "profile", label: "โปรไฟล์", icon: User },
 ];
 
 // HR navigation
 const hrNavigation = [
-  { id: "attendance-form", label: "Attendance Form", icon: ClipboardList },
-  { id: "employee-list", label: "Employee List", icon: Users },
-  { id: "employee-management", label: "Employee Management", icon: UserCog },
-  { id: "salary-management", label: "Salary Management", icon: DollarSign },
-  { id: "hr-report", label: "HR Report", icon: BarChart3 },
-  { id: "leave-ot-approval", label: "Leave & OT Approval", icon: CheckCircle },
+  { id: "attendance-form", label: "บันทึกเวลาทำงาน", icon: ClipboardList },
+  { id: "employee-list", label: "รายชื่อพนักงาน", icon: Users },
+  { id: "employee-management", label: "จัดการพนักงาน", icon: UserCog },
+  { id: "salary-management", label: "จัดการเงินเดือน", icon: DollarSign },
+  { id: "hr-report", label: "รายงาน HR", icon: BarChart3 },
+  { id: "leave-ot-approval", label: "อนุมัติลา/OT", icon: CheckCircle },
 ];
 
 // Accountant navigation
 const accountantNavigation = [
-  { id: "finance-report", label: "Finance Report", icon: DollarSign },
-  { id: "payroll-accounting", label: "Payroll Accounting", icon: BookOpen },
-  { id: "payroll-review", label: "Payroll Review", icon: FileText },
-  { id: "salary-calculator", label: "Salary Calculator", icon: Calculator },
-  { id: "tax-report", label: "Tax Report", icon: Receipt },
+  { id: "finance-report", label: "รายงานการเงิน", icon: DollarSign },
+  { id: "payroll-accounting", label: "บัญชีเงินเดือน", icon: BookOpen },
+  { id: "payroll-review", label: "ตรวจสอบเงินเดือน", icon: FileText },
+  { id: "salary-calculator", label: "คำนวณเงินเดือน", icon: Calculator },
+  { id: "tax-report", label: "รายงานภาษี", icon: Receipt },
 ];
 
 function getNavigationByRole(role: AppRole | null) {
@@ -63,6 +63,13 @@ function getNavigationByRole(role: AppRole | null) {
       return employeeNavigation;
   }
 }
+
+const roleLabels: Record<string, string> = {
+  admin: "ผู้ดูแลระบบ",
+  employee: "พนักงาน",
+  hr: "ฝ่ายบุคคล",
+  accountant: "ฝ่ายบัญชี",
+};
 
 export function Sidebar({ activeView, onNavigate, onLogout }: SidebarProps) {
   const { user } = useAuth();
@@ -79,8 +86,8 @@ export function Sidebar({ activeView, onNavigate, onLogout }: SidebarProps) {
         .slice(0, 2)
     : user?.email?.slice(0, 2).toUpperCase() || "U";
 
-  const displayName = user?.user_metadata?.full_name || user?.email || "User";
-  const roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1) : "Employee";
+  const displayName = user?.user_metadata?.full_name || user?.email || "ผู้ใช้";
+  const roleLabel = role ? roleLabels[role] || role : "พนักงาน";
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 gradient-sidebar border-r border-sidebar-border">
@@ -91,8 +98,8 @@ export function Sidebar({ activeView, onNavigate, onLogout }: SidebarProps) {
             <Building2 className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-display text-lg font-bold text-sidebar-foreground">PayrollPro</h1>
-            <p className="text-xs text-sidebar-foreground/60">Management System</p>
+            <h1 className="font-display text-sm font-bold text-sidebar-foreground leading-tight">บริษัท เปาปอนหยกฝ้ายองุ่น</h1>
+            <p className="text-xs text-sidebar-foreground/60">จำกัด</p>
           </div>
         </div>
 
@@ -130,7 +137,7 @@ export function Sidebar({ activeView, onNavigate, onLogout }: SidebarProps) {
             <button 
               onClick={onLogout}
               className="rounded-lg p-2 text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors"
-              title="Logout"
+              title="ออกจากระบบ"
             >
               <LogOut className="h-4 w-4" />
             </button>
