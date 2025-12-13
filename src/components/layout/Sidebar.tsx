@@ -39,6 +39,7 @@ const hrNavigation = [
   { id: "attendance-form", label: "Attendance Form", icon: ClipboardList },
   { id: "employee-list", label: "Employee List", icon: Users },
   { id: "employee-management", label: "Employee Management", icon: UserCog },
+  { id: "salary-management", label: "Salary Management", icon: DollarSign },
   { id: "hr-report", label: "HR Report", icon: BarChart3 },
   { id: "leave-ot-approval", label: "Leave & OT Approval", icon: CheckCircle },
 ];
