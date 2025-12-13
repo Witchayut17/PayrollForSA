@@ -19,6 +19,7 @@ import { EmployeeListView } from "@/components/views/EmployeeListView";
 import { EmployeeManagementView } from "@/components/views/EmployeeManagementView";
 import { HRReportView } from "@/components/views/HRReportView";
 import { LeaveOTApprovalView } from "@/components/views/LeaveOTApprovalView";
+import SalaryManagementView from "@/components/views/SalaryManagementView";
 
 // Accountant views
 import { FinanceReportView } from "@/components/views/FinanceReportView";
@@ -38,6 +39,7 @@ const viewTitles: Record<string, { title: string; subtitle: string }> = {
   "attendance-form": { title: "Attendance Form", subtitle: "Record employee attendance." },
   "employee-list": { title: "Employee List", subtitle: "View all employees." },
   "employee-management": { title: "Employee Management", subtitle: "Manage employee information." },
+  "salary-management": { title: "Salary Management", subtitle: "Set and manage employee salaries." },
   "hr-report": { title: "HR Reports", subtitle: "View HR analytics and reports." },
   "leave-ot-approval": { title: "Leave & OT Approval", subtitle: "Approve leave and OT requests." },
   
@@ -106,6 +108,8 @@ const Index = () => {
         return <EmployeeListView />;
       case "employee-management":
         return <EmployeeManagementView />;
+      case "salary-management":
+        return <SalaryManagementView />;
       case "hr-report":
         return <HRReportView />;
       case "leave-ot-approval":
