@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { th } from "date-fns/locale";
 
 interface LeaveRequest {
   id: string;
@@ -83,7 +84,7 @@ export function LeaveOTApprovalView() {
   const getEmployeeInfo = (userId: string) => {
     const profile = profiles.find((p) => p.id === userId);
     return {
-      name: profile?.full_name || "Unknown",
+      name: profile?.full_name || "ไม่ทราบชื่อ",
       employee_id: profile?.employee_id || "-",
     };
   };
@@ -103,12 +104,12 @@ export function LeaveOTApprovalView() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-leave-requests"] });
-      toast.success("Leave request updated");
+      toast.success("อัปเดตคำขอลาสำเร็จ");
       setSelectedLeave(null);
       setReviewNotes("");
     },
     onError: (error) => {
-      toast.error("Failed to update: " + error.message);
+      toast.error("อัปเดตไม่สำเร็จ: " + error.message);
     },
   });
 
@@ -127,23 +128,33 @@ export function LeaveOTApprovalView() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-ot-requests"] });
-      toast.success("OT request updated");
+      toast.success("อัปเดตคำขอ OT สำเร็จ");
       setSelectedOT(null);
       setReviewNotes("");
     },
     onError: (error) => {
-      toast.error("Failed to update: " + error.message);
+      toast.error("อัปเดตไม่สำเร็จ: " + error.message);
     },
   });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
-        return <Badge className="bg-green-500">Approved</Badge>;
+        return <Badge className="bg-green-500">อนุมัติ</Badge>;
       case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>;
+        return <Badge variant="destructive">ไม่อนุมัติ</Badge>;
       default:
-        return <Badge variant="secondary">Pending</Badge>;
+        return <Badge variant="secondary">รอดำเนินการ</Badge>;
+    }
+  };
+
+  const getLeaveType = (type: string) => {
+    switch (type) {
+      case "annual": return "ลาพักร้อน";
+      case "sick": return "ลาป่วย";
+      case "personal": return "ลากิจ";
+      case "maternity": return "ลาคลอด";
+      default: return type;
     }
   };
 
@@ -156,10 +167,10 @@ export function LeaveOTApprovalView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5" />
-            Leave & OT Approval
+            อนุมัติการลาและ OT
             {(pendingLeave.length > 0 || pendingOT.length > 0) && (
               <Badge variant="destructive" className="ml-2">
-                {pendingLeave.length + pendingOT.length} Pending
+                {pendingLeave.length + pendingOT.length} รายการรอดำเนินการ
               </Badge>
             )}
           </CardTitle>
@@ -168,13 +179,13 @@ export function LeaveOTApprovalView() {
           <Tabs defaultValue="leave">
             <TabsList className="mb-4">
               <TabsTrigger value="leave">
-                Leave Requests
+                คำขอลา
                 {pendingLeave.length > 0 && (
                   <Badge variant="secondary" className="ml-2">{pendingLeave.length}</Badge>
                 )}
               </TabsTrigger>
               <TabsTrigger value="ot">
-                OT Requests
+                คำขอ OT
                 {pendingOT.length > 0 && (
                   <Badge variant="secondary" className="ml-2">{pendingOT.length}</Badge>
                 )}
@@ -183,17 +194,17 @@ export function LeaveOTApprovalView() {
 
             <TabsContent value="leave">
               {loadingLeave ? (
-                <p className="text-muted-foreground">Loading...</p>
+                <p className="text-muted-foreground">กำลังโหลด...</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Employee</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Dates</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Submitted</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>พนักงาน</TableHead>
+                      <TableHead>ประเภทการลา</TableHead>
+                      <TableHead>วันที่</TableHead>
+                      <TableHead>สถานะ</TableHead>
+                      <TableHead>ยื่นเมื่อ</TableHead>
+                      <TableHead className="text-right">การดำเนินการ</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -207,12 +218,12 @@ export function LeaveOTApprovalView() {
                               <p className="text-sm text-muted-foreground">{emp.employee_id}</p>
                             </div>
                           </TableCell>
-                          <TableCell className="capitalize">{request.leave_type}</TableCell>
+                          <TableCell>{getLeaveType(request.leave_type)}</TableCell>
                           <TableCell>
-                            {format(new Date(request.start_date), "MMM d")} - {format(new Date(request.end_date), "MMM d, yyyy")}
+                            {format(new Date(request.start_date), "d MMM", { locale: th })} - {format(new Date(request.end_date), "d MMM yyyy", { locale: th })}
                           </TableCell>
                           <TableCell>{getStatusBadge(request.status)}</TableCell>
-                          <TableCell>{format(new Date(request.created_at), "MMM d, yyyy")}</TableCell>
+                          <TableCell>{format(new Date(request.created_at), "d MMM yyyy", { locale: th })}</TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="ghost"
@@ -231,7 +242,7 @@ export function LeaveOTApprovalView() {
                     {leaveRequests.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center text-muted-foreground">
-                          No leave requests
+                          ไม่มีคำขอลา
                         </TableCell>
                       </TableRow>
                     )}
@@ -242,17 +253,17 @@ export function LeaveOTApprovalView() {
 
             <TabsContent value="ot">
               {loadingOT ? (
-                <p className="text-muted-foreground">Loading...</p>
+                <p className="text-muted-foreground">กำลังโหลด...</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Employee</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Hours</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Submitted</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>พนักงาน</TableHead>
+                      <TableHead>วันที่</TableHead>
+                      <TableHead>จำนวนชั่วโมง</TableHead>
+                      <TableHead>สถานะ</TableHead>
+                      <TableHead>ยื่นเมื่อ</TableHead>
+                      <TableHead className="text-right">การดำเนินการ</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -266,10 +277,10 @@ export function LeaveOTApprovalView() {
                               <p className="text-sm text-muted-foreground">{emp.employee_id}</p>
                             </div>
                           </TableCell>
-                          <TableCell>{format(new Date(request.request_date), "MMM d, yyyy")}</TableCell>
-                          <TableCell>{request.hours} hrs</TableCell>
+                          <TableCell>{format(new Date(request.request_date), "d MMM yyyy", { locale: th })}</TableCell>
+                          <TableCell>{request.hours} ชม.</TableCell>
                           <TableCell>{getStatusBadge(request.status)}</TableCell>
-                          <TableCell>{format(new Date(request.created_at), "MMM d, yyyy")}</TableCell>
+                          <TableCell>{format(new Date(request.created_at), "d MMM yyyy", { locale: th })}</TableCell>
                           <TableCell className="text-right">
                             <Button
                               variant="ghost"
@@ -288,7 +299,7 @@ export function LeaveOTApprovalView() {
                     {otRequests.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center text-muted-foreground">
-                          No OT requests
+                          ไม่มีคำขอ OT
                         </TableCell>
                       </TableRow>
                     )}
@@ -304,36 +315,36 @@ export function LeaveOTApprovalView() {
       <Dialog open={!!selectedLeave} onOpenChange={() => setSelectedLeave(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Leave Request Details</DialogTitle>
+            <DialogTitle>รายละเอียดคำขอลา</DialogTitle>
           </DialogHeader>
           {selectedLeave && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Employee</p>
+                  <p className="text-muted-foreground">พนักงาน</p>
                   <p className="font-medium">{selectedLeave.employee_name}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Employee ID</p>
+                  <p className="text-muted-foreground">รหัสพนักงาน</p>
                   <p className="font-medium">{selectedLeave.employee_id}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Leave Type</p>
-                  <p className="font-medium capitalize">{selectedLeave.leave_type}</p>
+                  <p className="text-muted-foreground">ประเภทการลา</p>
+                  <p className="font-medium">{getLeaveType(selectedLeave.leave_type)}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Status</p>
+                  <p className="text-muted-foreground">สถานะ</p>
                   {getStatusBadge(selectedLeave.status)}
                 </div>
                 <div className="col-span-2">
-                  <p className="text-muted-foreground">Date Range</p>
+                  <p className="text-muted-foreground">ช่วงวันที่</p>
                   <p className="font-medium">
-                    {format(new Date(selectedLeave.start_date), "MMMM d, yyyy")} - {format(new Date(selectedLeave.end_date), "MMMM d, yyyy")}
+                    {format(new Date(selectedLeave.start_date), "d MMMM yyyy", { locale: th })} - {format(new Date(selectedLeave.end_date), "d MMMM yyyy", { locale: th })}
                   </p>
                 </div>
                 {selectedLeave.reason && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground">Reason</p>
+                    <p className="text-muted-foreground">เหตุผล</p>
                     <p>{selectedLeave.reason}</p>
                   </div>
                 )}
@@ -342,11 +353,11 @@ export function LeaveOTApprovalView() {
               {selectedLeave.status === "pending" && (
                 <>
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Review Notes (Optional)</p>
+                    <p className="text-sm text-muted-foreground">หมายเหตุการพิจารณา (ไม่บังคับ)</p>
                     <Textarea
                       value={reviewNotes}
                       onChange={(e) => setReviewNotes(e.target.value)}
-                      placeholder="Add notes for the employee..."
+                      placeholder="เพิ่มหมายเหตุสำหรับพนักงาน..."
                     />
                   </div>
                   <div className="flex gap-2">
@@ -356,7 +367,7 @@ export function LeaveOTApprovalView() {
                       disabled={updateLeaveRequest.isPending}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Approve
+                      อนุมัติ
                     </Button>
                     <Button
                       variant="destructive"
@@ -365,7 +376,7 @@ export function LeaveOTApprovalView() {
                       disabled={updateLeaveRequest.isPending}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Reject
+                      ไม่อนุมัติ
                     </Button>
                   </div>
                 </>
@@ -379,34 +390,34 @@ export function LeaveOTApprovalView() {
       <Dialog open={!!selectedOT} onOpenChange={() => setSelectedOT(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>OT Request Details</DialogTitle>
+            <DialogTitle>รายละเอียดคำขอ OT</DialogTitle>
           </DialogHeader>
           {selectedOT && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Employee</p>
+                  <p className="text-muted-foreground">พนักงาน</p>
                   <p className="font-medium">{selectedOT.employee_name}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Employee ID</p>
+                  <p className="text-muted-foreground">รหัสพนักงาน</p>
                   <p className="font-medium">{selectedOT.employee_id}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Date</p>
-                  <p className="font-medium">{format(new Date(selectedOT.request_date), "MMMM d, yyyy")}</p>
+                  <p className="text-muted-foreground">วันที่</p>
+                  <p className="font-medium">{format(new Date(selectedOT.request_date), "d MMMM yyyy", { locale: th })}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Hours</p>
-                  <p className="font-medium">{selectedOT.hours} hours</p>
+                  <p className="text-muted-foreground">จำนวนชั่วโมง</p>
+                  <p className="font-medium">{selectedOT.hours} ชั่วโมง</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Status</p>
+                  <p className="text-muted-foreground">สถานะ</p>
                   {getStatusBadge(selectedOT.status)}
                 </div>
                 {selectedOT.reason && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground">Reason</p>
+                    <p className="text-muted-foreground">เหตุผล</p>
                     <p>{selectedOT.reason}</p>
                   </div>
                 )}
@@ -415,11 +426,11 @@ export function LeaveOTApprovalView() {
               {selectedOT.status === "pending" && (
                 <>
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Review Notes (Optional)</p>
+                    <p className="text-sm text-muted-foreground">หมายเหตุการพิจารณา (ไม่บังคับ)</p>
                     <Textarea
                       value={reviewNotes}
                       onChange={(e) => setReviewNotes(e.target.value)}
-                      placeholder="Add notes for the employee..."
+                      placeholder="เพิ่มหมายเหตุสำหรับพนักงาน..."
                     />
                   </div>
                   <div className="flex gap-2">
@@ -429,7 +440,7 @@ export function LeaveOTApprovalView() {
                       disabled={updateOTRequest.isPending}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Approve
+                      อนุมัติ
                     </Button>
                     <Button
                       variant="destructive"
@@ -438,7 +449,7 @@ export function LeaveOTApprovalView() {
                       disabled={updateOTRequest.isPending}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
-                      Reject
+                      ไม่อนุมัติ
                     </Button>
                   </div>
                 </>

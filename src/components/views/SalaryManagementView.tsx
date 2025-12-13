@@ -97,7 +97,7 @@ export default function SalaryManagementView() {
         const profile = profiles?.find((p) => p.id === salary.user_id);
         return {
           ...salary,
-          full_name: profile?.full_name || "Unknown",
+          full_name: profile?.full_name || "ไม่ทราบชื่อ",
           employee_id: profile?.employee_id || "N/A",
         };
       }) as SalaryData[];
@@ -134,15 +134,15 @@ export default function SalaryManagementView() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["salaries"] });
       toast({
-        title: editingId ? "Salary Updated" : "Salary Added",
-        description: `Salary record has been ${editingId ? "updated" : "created"} successfully.`,
+        title: editingId ? "อัปเดตเงินเดือนแล้ว" : "เพิ่มเงินเดือนแล้ว",
+        description: `บันทึกข้อมูลเงินเดือน${editingId ? "อัปเดต" : "เพิ่ม"}สำเร็จ`,
       });
       handleCloseDialog();
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: `Failed to save salary: ${error.message}`,
+        title: "เกิดข้อผิดพลาด",
+        description: `ไม่สามารถบันทึกเงินเดือน: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -189,8 +189,8 @@ export default function SalaryManagementView() {
   const handleSubmit = () => {
     if (!formData.user_id || !formData.base_salary) {
       toast({
-        title: "Validation Error",
-        description: "Please select an employee and enter base salary.",
+        title: "ข้อมูลไม่ครบ",
+        description: "กรุณาเลือกพนักงานและกรอกเงินเดือนพื้นฐาน",
         variant: "destructive",
       });
       return;
@@ -220,42 +220,42 @@ export default function SalaryManagementView() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            Salary Management
+            จัดการเงินเดือน
           </CardTitle>
           <Button onClick={() => handleOpenDialog()}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Salary
+            เพิ่มเงินเดือน
           </Button>
         </CardHeader>
         <CardContent>
           {employeesWithoutSalary.length > 0 && (
             <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
               <p className="text-sm text-amber-800 dark:text-amber-200">
-                <strong>{employeesWithoutSalary.length}</strong> employee(s) without salary records:{" "}
+                <strong>{employeesWithoutSalary.length}</strong> พนักงานยังไม่มีข้อมูลเงินเดือน:{" "}
                 {employeesWithoutSalary.map((e) => e.employee_id).join(", ")}
               </p>
             </div>
           )}
 
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading...</div>
+            <div className="text-center py-8 text-muted-foreground">กำลังโหลด...</div>
           ) : salaries.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No salary records found. Click "Add Salary" to create one.
+              ไม่พบข้อมูลเงินเดือน กด "เพิ่มเงินเดือน" เพื่อสร้างรายการใหม่
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Base Salary</TableHead>
-                  <TableHead className="text-right">Housing</TableHead>
-                  <TableHead className="text-right">Transport</TableHead>
-                  <TableHead className="text-right">Other</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Effective Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>รหัสพนักงาน</TableHead>
+                  <TableHead>ชื่อ-นามสกุล</TableHead>
+                  <TableHead className="text-right">เงินเดือนพื้นฐาน</TableHead>
+                  <TableHead className="text-right">ค่าที่พัก</TableHead>
+                  <TableHead className="text-right">ค่าเดินทาง</TableHead>
+                  <TableHead className="text-right">อื่นๆ</TableHead>
+                  <TableHead className="text-right">รวมทั้งหมด</TableHead>
+                  <TableHead>วันที่มีผล</TableHead>
+                  <TableHead className="text-right">การดำเนินการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -300,12 +300,12 @@ export default function SalaryManagementView() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingId ? "Edit Salary" : "Add New Salary"}
+              {editingId ? "แก้ไขเงินเดือน" : "เพิ่มเงินเดือนใหม่"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Employee</Label>
+              <Label>พนักงาน</Label>
               <Select
                 value={formData.user_id}
                 onValueChange={(value) =>
@@ -314,7 +314,7 @@ export default function SalaryManagementView() {
                 disabled={!!editingId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select employee" />
+                  <SelectValue placeholder="เลือกพนักงาน" />
                 </SelectTrigger>
                 <SelectContent>
                   {(editingId ? employees : employeesWithoutSalary).map((emp) => (
@@ -327,20 +327,20 @@ export default function SalaryManagementView() {
             </div>
 
             <div className="space-y-2">
-              <Label>Base Salary (THB)</Label>
+              <Label>เงินเดือนพื้นฐาน (บาท)</Label>
               <Input
                 type="number"
                 value={formData.base_salary}
                 onChange={(e) =>
                   setFormData({ ...formData, base_salary: e.target.value })
                 }
-                placeholder="Enter base salary"
+                placeholder="กรอกเงินเดือนพื้นฐาน"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Housing Allowance</Label>
+                <Label>ค่าที่พัก</Label>
                 <Input
                   type="number"
                   value={formData.housing_allowance}
@@ -350,7 +350,7 @@ export default function SalaryManagementView() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Transport Allowance</Label>
+                <Label>ค่าเดินทาง</Label>
                 <Input
                   type="number"
                   value={formData.transport_allowance}
@@ -362,7 +362,7 @@ export default function SalaryManagementView() {
             </div>
 
             <div className="space-y-2">
-              <Label>Other Allowances</Label>
+              <Label>เบี้ยเลี้ยงอื่นๆ</Label>
               <Input
                 type="number"
                 value={formData.other_allowances}
@@ -373,7 +373,7 @@ export default function SalaryManagementView() {
             </div>
 
             <div className="space-y-2">
-              <Label>Effective Date</Label>
+              <Label>วันที่มีผล</Label>
               <Input
                 type="date"
                 value={formData.effective_date}
@@ -385,10 +385,10 @@ export default function SalaryManagementView() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={handleCloseDialog}>
-              Cancel
+              ยกเลิก
             </Button>
             <Button onClick={handleSubmit} disabled={saveSalary.isPending}>
-              {saveSalary.isPending ? "Saving..." : "Save"}
+              {saveSalary.isPending ? "กำลังบันทึก..." : "บันทึก"}
             </Button>
           </DialogFooter>
         </DialogContent>

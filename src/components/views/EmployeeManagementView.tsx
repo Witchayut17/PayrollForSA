@@ -74,11 +74,11 @@ export function EmployeeManagementView() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
-      toast.success("Employee updated successfully");
+      toast.success("อัปเดตข้อมูลพนักงานสำเร็จ");
       setIsEditDialogOpen(false);
     },
     onError: (error) => {
-      toast.error("Failed to update employee: " + error.message);
+      toast.error("อัปเดตข้อมูลพนักงานไม่สำเร็จ: " + error.message);
     },
   });
 
@@ -90,10 +90,10 @@ export function EmployeeManagementView() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
-      toast.success("Employee deleted successfully");
+      toast.success("ลบพนักงานสำเร็จ");
     },
     onError: () => {
-      toast.error("Cannot delete user from client. This requires admin privileges.");
+      toast.error("ไม่สามารถลบผู้ใช้จากฝั่งลูกค้าได้ ต้องใช้สิทธิ์ผู้ดูแลระบบ");
     },
   });
 
@@ -127,7 +127,7 @@ export function EmployeeManagementView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserCog className="h-5 w-5" />
-            Employee Management
+            จัดการพนักงาน
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -135,7 +135,7 @@ export function EmployeeManagementView() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name or employee ID..."
+                placeholder="ค้นหาด้วยชื่อหรือรหัสพนักงาน..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -144,16 +144,16 @@ export function EmployeeManagementView() {
           </div>
 
           {isLoading ? (
-            <p className="text-muted-foreground">Loading employees...</p>
+            <p className="text-muted-foreground">กำลังโหลดข้อมูลพนักงาน...</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee ID</TableHead>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Date of Birth</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>รหัสพนักงาน</TableHead>
+                  <TableHead>ชื่อ-นามสกุล</TableHead>
+                  <TableHead>วันเกิด</TableHead>
+                  <TableHead>ตำแหน่ง</TableHead>
+                  <TableHead className="text-right">การดำเนินการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -162,7 +162,9 @@ export function EmployeeManagementView() {
                     <TableCell className="font-mono">{employee.employee_id || "-"}</TableCell>
                     <TableCell>{employee.full_name || "-"}</TableCell>
                     <TableCell>{employee.date_of_birth || "-"}</TableCell>
-                    <TableCell className="capitalize">{employee.role}</TableCell>
+                    <TableCell className="capitalize">
+                      {employee.role === "hr" ? "ฝ่ายบุคคล" : employee.role === "accountant" ? "ฝ่ายบัญชี" : "พนักงาน"}
+                    </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(employee)}>
                         <Pencil className="h-4 w-4" />
@@ -171,7 +173,7 @@ export function EmployeeManagementView() {
                         variant="ghost"
                         size="icon"
                         onClick={() => {
-                          if (confirm("Are you sure you want to delete this employee?")) {
+                          if (confirm("คุณแน่ใจหรือไม่ว่าต้องการลบพนักงานคนนี้?")) {
                             deleteEmployee.mutate(employee.id);
                           }
                         }}
@@ -184,7 +186,7 @@ export function EmployeeManagementView() {
                 {filteredEmployees.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      No employees found
+                      ไม่พบพนักงาน
                     </TableCell>
                   </TableRow>
                 )}
@@ -198,18 +200,18 @@ export function EmployeeManagementView() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Employee</DialogTitle>
+            <DialogTitle>แก้ไขข้อมูลพนักงาน</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Full Name</Label>
+              <Label>ชื่อ-นามสกุล</Label>
               <Input
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
-              <Label>Date of Birth</Label>
+              <Label>วันเกิด</Label>
               <Input
                 type="date"
                 value={formData.date_of_birth}
@@ -217,20 +219,20 @@ export function EmployeeManagementView() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>ตำแหน่ง</Label>
               <Select value={formData.role} onValueChange={(v) => setFormData({ ...formData, role: v as AppRole })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="employee">Employee</SelectItem>
-                  <SelectItem value="hr">HR</SelectItem>
-                  <SelectItem value="accountant">Accountant</SelectItem>
+                  <SelectItem value="employee">พนักงาน</SelectItem>
+                  <SelectItem value="hr">ฝ่ายบุคคล</SelectItem>
+                  <SelectItem value="accountant">ฝ่ายบัญชี</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <Button className="w-full" onClick={handleSaveEdit} disabled={updateEmployee.isPending}>
-              {updateEmployee.isPending ? "Saving..." : "Save Changes"}
+              {updateEmployee.isPending ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
             </Button>
           </div>
         </DialogContent>

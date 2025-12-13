@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { th } from "date-fns/locale";
 
 export function TaxReportView() {
   const currentDate = new Date();
@@ -15,7 +16,7 @@ export function TaxReportView() {
 
   const months = Array.from({ length: 12 }, (_, i) => {
     const date = subMonths(currentDate, i);
-    return { value: format(date, "yyyy-MM"), label: format(date, "MMMM yyyy") };
+    return { value: format(date, "yyyy-MM"), label: format(date, "MMMM yyyy", { locale: th }) };
   });
 
   const monthStart = startOfMonth(new Date(selectedMonth + "-01"));
@@ -59,12 +60,12 @@ export function TaxReportView() {
     const reportData = payslips?.map((payslip) => {
       const profile = profileMap.get(payslip.user_id);
       return {
-        "Employee ID": profile?.employee_id || "",
-        "Name": profile?.full_name || "",
-        "Gross Pay": Number(payslip.gross_pay),
-        "Tax Deduction": Number(payslip.tax_deduction || 0),
-        "Social Security": Number(payslip.social_security || 0),
-        "Total Deductions": Number(payslip.tax_deduction || 0) + Number(payslip.social_security || 0),
+        "รหัสพนักงาน": profile?.employee_id || "",
+        "ชื่อ-นามสกุล": profile?.full_name || "",
+        "รายรับรวม": Number(payslip.gross_pay),
+        "หักภาษี": Number(payslip.tax_deduction || 0),
+        "ประกันสังคม": Number(payslip.social_security || 0),
+        "รวมการหัก": Number(payslip.tax_deduction || 0) + Number(payslip.social_security || 0),
       };
     });
 
@@ -77,7 +78,7 @@ export function TaxReportView() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `tax-report-${selectedMonth}.csv`;
+    a.download = `รายงานภาษี-${selectedMonth}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -87,7 +88,7 @@ export function TaxReportView() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Receipt className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Tax & Social Insurance Report</h1>
+          <h1 className="text-2xl font-bold text-foreground">รายงานภาษีและประกันสังคม</h1>
         </div>
         <div className="flex items-center gap-4">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -104,11 +105,11 @@ export function TaxReportView() {
           </Select>
           <Button onClick={handleExport} variant="outline">
             <Download className="h-4 w-4 mr-2" />
-            Export CSV
+            ส่งออก CSV
           </Button>
           <Button onClick={handlePrint} variant="outline">
             <Printer className="h-4 w-4 mr-2" />
-            Print
+            พิมพ์
           </Button>
         </div>
       </div>
@@ -117,7 +118,7 @@ export function TaxReportView() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Taxable Income</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">รายได้รวมที่ต้องเสียภาษี</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -130,7 +131,7 @@ export function TaxReportView() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Tax Withheld</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">ภาษีหัก ณ ที่จ่ายรวม</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -139,14 +140,14 @@ export function TaxReportView() {
               <div className="text-2xl font-bold text-red-600">฿{totalTax.toLocaleString()}</div>
             )}
             <p className="text-xs text-muted-foreground mt-1">
-              Effective Rate: {totalGrossPay > 0 ? ((totalTax / totalGrossPay) * 100).toFixed(2) : 0}%
+              อัตราที่แท้จริง: {totalGrossPay > 0 ? ((totalTax / totalGrossPay) * 100).toFixed(2) : 0}%
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Social Security</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">เงินสมทบประกันสังคมรวม</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -154,7 +155,7 @@ export function TaxReportView() {
             ) : (
               <div className="text-2xl font-bold text-blue-600">฿{totalSocialSecurity.toLocaleString()}</div>
             )}
-            <p className="text-xs text-muted-foreground mt-1">Employee Contribution</p>
+            <p className="text-xs text-muted-foreground mt-1">ส่วนสมทบพนักงาน</p>
           </CardContent>
         </Card>
       </div>
@@ -162,7 +163,7 @@ export function TaxReportView() {
       {/* Tax Details Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Employee Tax & Social Security Details</CardTitle>
+          <CardTitle>รายละเอียดภาษีและประกันสังคมรายบุคคล</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -175,12 +176,12 @@ export function TaxReportView() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee ID</TableHead>
-                  <TableHead>Employee Name</TableHead>
-                  <TableHead className="text-right">Gross Pay</TableHead>
-                  <TableHead className="text-right">Tax Deduction</TableHead>
-                  <TableHead className="text-right">Social Security</TableHead>
-                  <TableHead className="text-right">Total Statutory Deductions</TableHead>
+                  <TableHead>รหัสพนักงาน</TableHead>
+                  <TableHead>ชื่อ-นามสกุล</TableHead>
+                  <TableHead className="text-right">รายรับรวม</TableHead>
+                  <TableHead className="text-right">หักภาษี</TableHead>
+                  <TableHead className="text-right">ประกันสังคม</TableHead>
+                  <TableHead className="text-right">รวมการหักตามกฎหมาย</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -190,7 +191,7 @@ export function TaxReportView() {
                   return (
                     <TableRow key={payslip.id}>
                       <TableCell className="font-mono">{profile?.employee_id || "-"}</TableCell>
-                      <TableCell className="font-medium">{profile?.full_name || "Unknown"}</TableCell>
+                      <TableCell className="font-medium">{profile?.full_name || "ไม่ทราบชื่อ"}</TableCell>
                       <TableCell className="text-right">฿{Number(payslip.gross_pay).toLocaleString()}</TableCell>
                       <TableCell className="text-right text-red-600">
                         ฿{Number(payslip.tax_deduction || 0).toLocaleString()}
@@ -206,7 +207,7 @@ export function TaxReportView() {
                 })}
                 {/* Totals Row */}
                 <TableRow className="bg-muted/50 font-bold">
-                  <TableCell colSpan={2}>TOTAL</TableCell>
+                  <TableCell colSpan={2}>รวมทั้งหมด</TableCell>
                   <TableCell className="text-right">฿{totalGrossPay.toLocaleString()}</TableCell>
                   <TableCell className="text-right text-red-600">฿{totalTax.toLocaleString()}</TableCell>
                   <TableCell className="text-right text-blue-600">฿{totalSocialSecurity.toLocaleString()}</TableCell>
@@ -215,7 +216,7 @@ export function TaxReportView() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-center text-muted-foreground py-8">No tax data available for this month.</p>
+            <p className="text-center text-muted-foreground py-8">ไม่มีข้อมูลภาษีสำหรับเดือนนี้</p>
           )}
         </CardContent>
       </Card>

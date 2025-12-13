@@ -44,11 +44,11 @@ export function EmployeeListView() {
   const getRoleBadge = (role: AppRole) => {
     switch (role) {
       case "hr":
-        return <Badge className="bg-blue-500">HR</Badge>;
+        return <Badge className="bg-blue-500">ฝ่ายบุคคล</Badge>;
       case "accountant":
-        return <Badge className="bg-green-500">Accountant</Badge>;
+        return <Badge className="bg-green-500">ฝ่ายบัญชี</Badge>;
       default:
-        return <Badge variant="secondary">Employee</Badge>;
+        return <Badge variant="secondary">พนักงาน</Badge>;
     }
   };
 
@@ -58,15 +58,15 @@ export function EmployeeListView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Employee List
-            <Badge variant="outline" className="ml-2">{employees.length} total</Badge>
+            รายชื่อพนักงาน
+            <Badge variant="outline" className="ml-2">ทั้งหมด {employees.length} คน</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or employee ID..."
+              placeholder="ค้นหาด้วยชื่อหรือรหัสพนักงาน..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -74,16 +74,16 @@ export function EmployeeListView() {
           </div>
 
           {isLoading ? (
-            <p className="text-muted-foreground">Loading employees...</p>
+            <p className="text-muted-foreground">กำลังโหลดข้อมูลพนักงาน...</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee ID</TableHead>
-                  <TableHead>Full Name</TableHead>
-                  <TableHead>Date of Birth</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Joined</TableHead>
+                  <TableHead>รหัสพนักงาน</TableHead>
+                  <TableHead>ชื่อ-นามสกุล</TableHead>
+                  <TableHead>วันเกิด</TableHead>
+                  <TableHead>ตำแหน่ง</TableHead>
+                  <TableHead>วันที่เริ่มงาน</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -95,7 +95,7 @@ export function EmployeeListView() {
                     <TableCell>{getRoleBadge(employee.role as AppRole)}</TableCell>
                     <TableCell>
                       {employee.created_at
-                        ? new Date(employee.created_at).toLocaleDateString()
+                        ? new Date(employee.created_at).toLocaleDateString("th-TH")
                         : "-"}
                     </TableCell>
                   </TableRow>
@@ -103,7 +103,7 @@ export function EmployeeListView() {
                 {filteredEmployees.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      No employees found
+                      ไม่พบพนักงาน
                     </TableCell>
                   </TableRow>
                 )}
