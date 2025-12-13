@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DollarSign, TrendingUp, TrendingDown, FileText, Printer } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Printer, Building2, PieChart, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,38 +35,76 @@ export function FinanceReportView() {
     },
   });
 
-  const { data: profiles } = useQuery({
-    queryKey: ["all-profiles"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("*");
-      if (error) throw error;
-      return data || [];
-    },
-  });
-
-  const profileMap = new Map(profiles?.map((p) => [p.id, p]) || []);
-
-  // Calculate summary statistics
+  // Calculate company-level financial summaries
+  const totalBaseSalaries = payslips?.reduce((sum, p) => sum + Number(p.base_salary), 0) || 0;
+  const totalAllowances = payslips?.reduce((sum, p) => sum + Number(p.allowances || 0), 0) || 0;
+  const totalOvertimePay = payslips?.reduce((sum, p) => sum + Number(p.overtime_pay || 0), 0) || 0;
+  const totalBonus = payslips?.reduce((sum, p) => sum + Number(p.bonus || 0), 0) || 0;
+  const totalCommission = payslips?.reduce((sum, p) => sum + Number(p.commission || 0), 0) || 0;
   const totalGrossPay = payslips?.reduce((sum, p) => sum + Number(p.gross_pay), 0) || 0;
-  const totalNetPay = payslips?.reduce((sum, p) => sum + Number(p.net_pay), 0) || 0;
+  
   const totalTaxDeductions = payslips?.reduce((sum, p) => sum + Number(p.tax_deduction || 0), 0) || 0;
   const totalSocialSecurity = payslips?.reduce((sum, p) => sum + Number(p.social_security || 0), 0) || 0;
   const totalOtherDeductions = payslips?.reduce((sum, p) => sum + Number(p.other_deductions || 0), 0) || 0;
   const totalDeductions = totalTaxDeductions + totalSocialSecurity + totalOtherDeductions;
-  const totalBonus = payslips?.reduce((sum, p) => sum + Number(p.bonus || 0), 0) || 0;
-  const totalCommission = payslips?.reduce((sum, p) => sum + Number(p.commission || 0), 0) || 0;
-  const totalOvertimePay = payslips?.reduce((sum, p) => sum + Number(p.overtime_pay || 0), 0) || 0;
+  const totalNetPay = payslips?.reduce((sum, p) => sum + Number(p.net_pay), 0) || 0;
+
+  const employeeCount = payslips?.length || 0;
+  const paidCount = payslips?.filter(p => p.status === "paid").length || 0;
+  const pendingCount = employeeCount - paidCount;
+
+  // Company expense categories for the report
+  const expenseCategories = [
+    { name: "Base Salaries", amount: totalBaseSalaries, percentage: totalGrossPay > 0 ? (totalBaseSalaries / totalGrossPay * 100).toFixed(1) : 0 },
+    { name: "Allowances", amount: totalAllowances, percentage: totalGrossPay > 0 ? (totalAllowances / totalGrossPay * 100).toFixed(1) : 0 },
+    { name: "Overtime Pay", amount: totalOvertimePay, percentage: totalGrossPay > 0 ? (totalOvertimePay / totalGrossPay * 100).toFixed(1) : 0 },
+    { name: "Bonus", amount: totalBonus, percentage: totalGrossPay > 0 ? (totalBonus / totalGrossPay * 100).toFixed(1) : 0 },
+    { name: "Commission", amount: totalCommission, percentage: totalGrossPay > 0 ? (totalCommission / totalGrossPay * 100).toFixed(1) : 0 },
+  ];
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleExport = () => {
+    const reportData = [
+      ["Company Finance Report", format(monthStart, "MMMM yyyy")],
+      [""],
+      ["INCOME SUMMARY"],
+      ["Category", "Amount (THB)", "% of Total"],
+      ...expenseCategories.map(cat => [cat.name, cat.amount.toString(), `${cat.percentage}%`]),
+      ["Total Gross Payroll", totalGrossPay.toString(), "100%"],
+      [""],
+      ["DEDUCTION SUMMARY"],
+      ["Tax Withholding", totalTaxDeductions.toString()],
+      ["Social Security (Company)", totalSocialSecurity.toString()],
+      ["Other Deductions", totalOtherDeductions.toString()],
+      ["Total Deductions", totalDeductions.toString()],
+      [""],
+      ["NET PAYROLL COST", totalNetPay.toString()],
+      [""],
+      ["WORKFORCE SUMMARY"],
+      ["Total Employees", employeeCount.toString()],
+      ["Paid", paidCount.toString()],
+      ["Pending", pendingCount.toString()],
+    ];
+
+    const csvContent = reportData.map(row => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `company-finance-report-${selectedMonth}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <DollarSign className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Finance Report</h1>
+          <Building2 className="h-6 w-6 text-primary" />
+          <h1 className="text-2xl font-bold text-foreground">Company Finance Report</h1>
         </div>
         <div className="flex items-center gap-4">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -81,33 +119,35 @@ export function FinanceReportView() {
               ))}
             </SelectContent>
           </Select>
+          <Button onClick={handleExport} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
           <Button onClick={handlePrint} variant="outline">
             <Printer className="h-4 w-4 mr-2" />
-            Print Report
+            Print
           </Button>
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* Company Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Gross Pay</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
+            <CardTitle className="text-sm font-medium">Total Payroll Cost</CardTitle>
+            <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-2xl font-bold text-green-600">
-                ฿{totalGrossPay.toLocaleString()}
-              </div>
+              <div className="text-2xl font-bold">฿{totalGrossPay.toLocaleString()}</div>
             )}
-            <p className="text-xs text-muted-foreground">Income before deductions</p>
+            <p className="text-xs text-muted-foreground">Gross payroll expense</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-red-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Deductions</CardTitle>
             <TrendingDown className="h-4 w-4 text-red-500" />
@@ -116,190 +156,156 @@ export function FinanceReportView() {
             {isLoading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-2xl font-bold text-red-600">
-                ฿{totalDeductions.toLocaleString()}
-              </div>
+              <div className="text-2xl font-bold">฿{totalDeductions.toLocaleString()}</div>
             )}
-            <p className="text-xs text-muted-foreground">Tax, SS & Other</p>
+            <p className="text-xs text-muted-foreground">Tax & Social Security</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Net Pay</CardTitle>
-            <DollarSign className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-medium">Net Payout</CardTitle>
+            <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-2xl font-bold text-primary">
-                ฿{totalNetPay.toLocaleString()}
-              </div>
+              <div className="text-2xl font-bold text-primary">฿{totalNetPay.toLocaleString()}</div>
             )}
-            <p className="text-xs text-muted-foreground">Actual payout amount</p>
+            <p className="text-xs text-muted-foreground">Actual disbursement</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Employees Paid</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Workforce</CardTitle>
+            <PieChart className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-2xl font-bold">{payslips?.length || 0}</div>
+              <div className="text-2xl font-bold">{employeeCount}</div>
             )}
-            <p className="text-xs text-muted-foreground">Payslips generated</p>
+            <p className="text-xs text-muted-foreground">
+              {paidCount} paid / {pendingCount} pending
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Income vs Expense Summary */}
+      {/* Company Income & Expense Breakdown */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-600">
-              <TrendingUp className="h-5 w-5" />
-              Income Breakdown
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-green-600" />
+              Payroll Expense Breakdown
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Base Salaries</span>
-              <span className="font-semibold">
-                ฿{payslips?.reduce((sum, p) => sum + Number(p.base_salary), 0).toLocaleString() || 0}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Allowances</span>
-              <span className="font-semibold">
-                ฿{payslips?.reduce((sum, p) => sum + Number(p.allowances || 0), 0).toLocaleString() || 0}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Overtime Pay</span>
-              <span className="font-semibold">฿{totalOvertimePay.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Bonus</span>
-              <span className="font-semibold">฿{totalBonus.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Commission</span>
-              <span className="font-semibold">฿{totalCommission.toLocaleString()}</span>
-            </div>
-            <div className="pt-3 border-t flex justify-between">
-              <span className="font-bold">Total Gross</span>
-              <span className="font-bold text-green-600">฿{totalGrossPay.toLocaleString()}</span>
-            </div>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">%</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {expenseCategories.map((cat) => (
+                  <TableRow key={cat.name}>
+                    <TableCell>{cat.name}</TableCell>
+                    <TableCell className="text-right">฿{cat.amount.toLocaleString()}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{cat.percentage}%</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="bg-muted/50 font-bold">
+                  <TableCell>Total Gross Payroll</TableCell>
+                  <TableCell className="text-right text-green-600">฿{totalGrossPay.toLocaleString()}</TableCell>
+                  <TableCell className="text-right">100%</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-600">
-              <TrendingDown className="h-5 w-5" />
-              Expense Breakdown (Deductions)
+            <CardTitle className="flex items-center gap-2">
+              <TrendingDown className="h-5 w-5 text-red-600" />
+              Statutory Deductions
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Tax Deductions</span>
-              <span className="font-semibold">฿{totalTaxDeductions.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Social Security</span>
-              <span className="font-semibold">฿{totalSocialSecurity.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Other Deductions</span>
-              <span className="font-semibold">฿{totalOtherDeductions.toLocaleString()}</span>
-            </div>
-            <div className="pt-3 border-t flex justify-between">
-              <span className="font-bold">Total Deductions</span>
-              <span className="font-bold text-red-600">฿{totalDeductions.toLocaleString()}</span>
-            </div>
-            <div className="pt-3 border-t flex justify-between">
-              <span className="font-bold text-primary">Net Payroll Cost</span>
-              <span className="font-bold text-primary">฿{totalNetPay.toLocaleString()}</span>
-            </div>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Deduction Type</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Withholding Tax</TableCell>
+                  <TableCell className="text-right">฿{totalTaxDeductions.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Social Security Contribution</TableCell>
+                  <TableCell className="text-right">฿{totalSocialSecurity.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Other Deductions</TableCell>
+                  <TableCell className="text-right">฿{totalOtherDeductions.toLocaleString()}</TableCell>
+                </TableRow>
+                <TableRow className="bg-muted/50 font-bold">
+                  <TableCell>Total Deductions</TableCell>
+                  <TableCell className="text-right text-red-600">฿{totalDeductions.toLocaleString()}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </div>
 
-      {/* Payroll Details Table */}
+      {/* Financial Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Employee Payroll Details</CardTitle>
+          <CardTitle>Monthly Financial Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="space-y-2 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
+              <p className="text-sm text-muted-foreground">Gross Payroll Expense</p>
+              <p className="text-3xl font-bold text-green-600">฿{totalGrossPay.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">Total compensation cost</p>
             </div>
-          ) : payslips && payslips.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead className="text-right">Gross Pay</TableHead>
-                  <TableHead className="text-right">Tax</TableHead>
-                  <TableHead className="text-right">Social Sec.</TableHead>
-                  <TableHead className="text-right">Other Ded.</TableHead>
-                  <TableHead className="text-right">Net Pay</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {payslips.map((payslip) => {
-                  const profile = profileMap.get(payslip.user_id);
-                  return (
-                    <TableRow key={payslip.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{profile?.full_name || "Unknown"}</p>
-                          <p className="text-xs text-muted-foreground">{profile?.employee_id}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">฿{Number(payslip.gross_pay).toLocaleString()}</TableCell>
-                      <TableCell className="text-right text-red-600">
-                        -฿{Number(payslip.tax_deduction || 0).toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right text-red-600">
-                        -฿{Number(payslip.social_security || 0).toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right text-red-600">
-                        -฿{Number(payslip.other_deductions || 0).toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        ฿{Number(payslip.net_pay).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            payslip.status === "paid"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {payslip.status}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-center text-muted-foreground py-8">No payroll data for this month.</p>
+            <div className="space-y-2 p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
+              <p className="text-sm text-muted-foreground">Statutory Obligations</p>
+              <p className="text-3xl font-bold text-red-600">฿{totalDeductions.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">Tax & social security</p>
+            </div>
+            <div className="space-y-2 p-4 bg-primary/10 rounded-lg">
+              <p className="text-sm text-muted-foreground">Net Cash Outflow</p>
+              <p className="text-3xl font-bold text-primary">฿{totalNetPay.toLocaleString()}</p>
+              <p className="text-xs text-muted-foreground">Employee payments</p>
+            </div>
+          </div>
+
+          {payslips && payslips.length === 0 && (
+            <p className="text-center text-muted-foreground py-8 mt-4">
+              No payroll data for {format(monthStart, "MMMM yyyy")}.
+            </p>
           )}
         </CardContent>
       </Card>
+
+      {/* Report Footer */}
+      <div className="text-center text-sm text-muted-foreground border-t pt-4">
+        <p>Company Finance Report for {format(monthStart, "MMMM yyyy")}</p>
+        <p>Generated on {format(new Date(), "dd MMMM yyyy, HH:mm")}</p>
+      </div>
     </div>
   );
 }
