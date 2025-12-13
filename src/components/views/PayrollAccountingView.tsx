@@ -11,6 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { th } from "date-fns/locale";
 
 export function PayrollAccountingView() {
   const queryClient = useQueryClient();
@@ -21,7 +22,7 @@ export function PayrollAccountingView() {
 
   const months = Array.from({ length: 12 }, (_, i) => {
     const date = subMonths(currentDate, i);
-    return { value: format(date, "yyyy-MM"), label: format(date, "MMMM yyyy") };
+    return { value: format(date, "yyyy-MM"), label: format(date, "MMMM yyyy", { locale: th }) };
   });
 
   const monthStart = startOfMonth(new Date(selectedMonth + "-01"));
@@ -68,10 +69,10 @@ export function PayrollAccountingView() {
       queryClient.invalidateQueries({ queryKey: ["payroll-accounting"] });
       setSelectedPayslips([]);
       setShowConfirmDialog(false);
-      toast.success("Payroll processed successfully! Payments have been marked as paid.");
+      toast.success("ประมวลผลเงินเดือนสำเร็จ! การจ่ายเงินถูกบันทึกเรียบร้อยแล้ว");
     },
     onError: (error) => {
-      toast.error("Failed to process payroll: " + error.message);
+      toast.error("ไม่สามารถประมวลผลเงินเดือนได้: " + error.message);
     },
   });
 
@@ -98,7 +99,7 @@ export function PayrollAccountingView() {
 
   const handleProcessPayroll = () => {
     if (selectedPayslips.length === 0) {
-      toast.error("Please select at least one payslip to process.");
+      toast.error("กรุณาเลือกอย่างน้อยหนึ่งสลิปเงินเดือนเพื่อประมวลผล");
       return;
     }
     setShowConfirmDialog(true);
@@ -107,7 +108,7 @@ export function PayrollAccountingView() {
   const handleExportBankFile = () => {
     const selectedData = payslips?.filter((p) => selectedPayslips.includes(p.id));
     if (!selectedData || selectedData.length === 0) {
-      toast.error("Please select payslips to export.");
+      toast.error("กรุณาเลือกสลิปเงินเดือนเพื่อส่งออก");
       return;
     }
 
@@ -119,12 +120,12 @@ export function PayrollAccountingView() {
         bank_name: profile?.bank_name || "",
         bank_account_number: profile?.bank_account_number || "",
         net_pay: Number(payslip.net_pay),
-        pay_period: `${payslip.pay_period_start} to ${payslip.pay_period_end}`,
+        pay_period: `${payslip.pay_period_start} ถึง ${payslip.pay_period_end}`,
       };
     });
 
     const csv = [
-      "Employee ID,Employee Name,Bank Name,Bank Account Number,Net Pay,Pay Period",
+      "รหัสพนักงาน,ชื่อพนักงาน,ชื่อธนาคาร,เลขบัญชีธนาคาร,เงินสุทธิ,งวดการจ่าย",
       ...bankData.map((row) => 
         `${row.employee_id},"${row.employee_name}","${row.bank_name}","${row.bank_account_number}",${row.net_pay},"${row.pay_period}"`
       ),
@@ -134,10 +135,10 @@ export function PayrollAccountingView() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `bank-transfer-${selectedMonth}.csv`;
+    a.download = `โอนเงินธนาคาร-${selectedMonth}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Bank transfer file exported successfully!");
+    toast.success("ส่งออกไฟล์โอนเงินธนาคารสำเร็จ!");
   };
 
   // Get selected payslips details for confirmation dialog
@@ -148,7 +149,7 @@ export function PayrollAccountingView() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <BookOpen className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Payroll Accounting</h1>
+          <h1 className="text-2xl font-bold text-foreground">บัญชีเงินเดือน</h1>
         </div>
         <div className="flex items-center gap-4">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -170,35 +171,35 @@ export function PayrollAccountingView() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pending Payments</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">รอจ่ายเงิน</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{pendingPayslips.length}</div>
+            <div className="text-2xl font-bold text-yellow-600">{pendingPayslips.length} รายการ</div>
             <p className="text-xs text-muted-foreground">
-              Total: ฿{pendingPayslips.reduce((sum, p) => sum + Number(p.net_pay), 0).toLocaleString()}
+              รวม: ฿{pendingPayslips.reduce((sum, p) => sum + Number(p.net_pay), 0).toLocaleString()}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Processed Payments</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">จ่ายเงินแล้ว</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{paidPayslips.length}</div>
+            <div className="text-2xl font-bold text-green-600">{paidPayslips.length} รายการ</div>
             <p className="text-xs text-muted-foreground">
-              Total: ฿{paidPayslips.reduce((sum, p) => sum + Number(p.net_pay), 0).toLocaleString()}
+              รวม: ฿{paidPayslips.reduce((sum, p) => sum + Number(p.net_pay), 0).toLocaleString()}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Selected for Processing</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">เลือกเพื่อประมวลผล</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">{selectedPayslips.length}</div>
-            <p className="text-xs text-muted-foreground">Total: ฿{selectedTotal.toLocaleString()}</p>
+            <div className="text-2xl font-bold text-primary">{selectedPayslips.length} รายการ</div>
+            <p className="text-xs text-muted-foreground">รวม: ฿{selectedTotal.toLocaleString()}</p>
           </CardContent>
         </Card>
       </div>
@@ -206,21 +207,21 @@ export function PayrollAccountingView() {
       {/* Pending Payroll Table */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Pending Payroll</CardTitle>
+          <CardTitle>รายการเงินเดือนรอจ่าย</CardTitle>
           <div className="flex gap-2">
             <Button onClick={selectAllPending} variant="outline" size="sm">
-              Select All
+              เลือกทั้งหมด
             </Button>
             <Button onClick={clearSelection} variant="outline" size="sm">
-              Clear
+              ล้างการเลือก
             </Button>
             <Button onClick={handleExportBankFile} variant="outline" size="sm" disabled={selectedPayslips.length === 0}>
               <Download className="h-4 w-4 mr-2" />
-              Export Bank File
+              ส่งออกไฟล์ธนาคาร
             </Button>
             <Button onClick={handleProcessPayroll} disabled={selectedPayslips.length === 0}>
               <Send className="h-4 w-4 mr-2" />
-              Process Selected
+              ประมวลผลที่เลือก
             </Button>
           </div>
         </CardHeader>
@@ -235,13 +236,13 @@ export function PayrollAccountingView() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12">Select</TableHead>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Bank Account</TableHead>
-                  <TableHead>Pay Period</TableHead>
-                  <TableHead className="text-right">Gross Pay</TableHead>
-                  <TableHead className="text-right">Deductions</TableHead>
-                  <TableHead className="text-right">Net Pay</TableHead>
+                  <TableHead className="w-12">เลือก</TableHead>
+                  <TableHead>พนักงาน</TableHead>
+                  <TableHead>บัญชีธนาคาร</TableHead>
+                  <TableHead>งวดการจ่าย</TableHead>
+                  <TableHead className="text-right">เงินรวม</TableHead>
+                  <TableHead className="text-right">หักเงิน</TableHead>
+                  <TableHead className="text-right">เงินสุทธิ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -261,7 +262,7 @@ export function PayrollAccountingView() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{profile?.full_name || "Unknown"}</p>
+                          <p className="font-medium">{profile?.full_name || "ไม่ทราบชื่อ"}</p>
                           <p className="text-xs text-muted-foreground">{profile?.employee_id}</p>
                         </div>
                       </TableCell>
@@ -275,12 +276,12 @@ export function PayrollAccountingView() {
                             </div>
                           </div>
                         ) : (
-                          <span className="text-xs text-destructive">No bank info</span>
+                          <span className="text-xs text-destructive">ไม่มีข้อมูลธนาคาร</span>
                         )}
                       </TableCell>
                       <TableCell>
-                        {format(new Date(payslip.pay_period_start), "MMM d")} -{" "}
-                        {format(new Date(payslip.pay_period_end), "MMM d, yyyy")}
+                        {format(new Date(payslip.pay_period_start), "d MMM", { locale: th })} -{" "}
+                        {format(new Date(payslip.pay_period_end), "d MMM yyyy", { locale: th })}
                       </TableCell>
                       <TableCell className="text-right">฿{Number(payslip.gross_pay).toLocaleString()}</TableCell>
                       <TableCell className="text-right text-red-600">-฿{totalDeductions.toLocaleString()}</TableCell>
@@ -293,7 +294,7 @@ export function PayrollAccountingView() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-center text-muted-foreground py-8">No pending payroll for this month.</p>
+            <p className="text-center text-muted-foreground py-8">ไม่มีรายการเงินเดือนรอจ่ายในเดือนนี้</p>
           )}
         </CardContent>
       </Card>
@@ -303,7 +304,7 @@ export function PayrollAccountingView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Check className="h-5 w-5 text-green-600" />
-            Processed Payments
+            รายการที่จ่ายเงินแล้ว
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -311,11 +312,11 @@ export function PayrollAccountingView() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Bank Account</TableHead>
-                  <TableHead>Pay Period</TableHead>
-                  <TableHead className="text-right">Net Pay</TableHead>
-                  <TableHead>Paid At</TableHead>
+                  <TableHead>พนักงาน</TableHead>
+                  <TableHead>บัญชีธนาคาร</TableHead>
+                  <TableHead>งวดการจ่าย</TableHead>
+                  <TableHead className="text-right">เงินสุทธิ</TableHead>
+                  <TableHead>จ่ายเมื่อ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -325,7 +326,7 @@ export function PayrollAccountingView() {
                     <TableRow key={payslip.id}>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{profile?.full_name || "Unknown"}</p>
+                          <p className="font-medium">{profile?.full_name || "ไม่ทราบชื่อ"}</p>
                           <p className="text-xs text-muted-foreground">{profile?.employee_id}</p>
                         </div>
                       </TableCell>
@@ -343,14 +344,14 @@ export function PayrollAccountingView() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {format(new Date(payslip.pay_period_start), "MMM d")} -{" "}
-                        {format(new Date(payslip.pay_period_end), "MMM d, yyyy")}
+                        {format(new Date(payslip.pay_period_start), "d MMM", { locale: th })} -{" "}
+                        {format(new Date(payslip.pay_period_end), "d MMM yyyy", { locale: th })}
                       </TableCell>
                       <TableCell className="text-right font-semibold text-green-600">
                         ฿{Number(payslip.net_pay).toLocaleString()}
                       </TableCell>
                       <TableCell>
-                        {payslip.paid_at ? format(new Date(payslip.paid_at), "MMM d, yyyy HH:mm") : "-"}
+                        {payslip.paid_at ? format(new Date(payslip.paid_at), "d MMM yyyy HH:mm", { locale: th }) : "-"}
                       </TableCell>
                     </TableRow>
                   );
@@ -358,7 +359,7 @@ export function PayrollAccountingView() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-center text-muted-foreground py-8">No processed payments for this month.</p>
+            <p className="text-center text-muted-foreground py-8">ไม่มีรายการที่จ่ายเงินแล้วในเดือนนี้</p>
           )}
         </CardContent>
       </Card>
@@ -367,17 +368,17 @@ export function PayrollAccountingView() {
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Confirm Payroll Processing</DialogTitle>
+            <DialogTitle>ยืนยันการประมวลผลเงินเดือน</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p className="mb-4">You are about to process payment for the following employees:</p>
+            <p className="mb-4">คุณกำลังจะประมวลผลการจ่ายเงินสำหรับพนักงานต่อไปนี้:</p>
             <div className="max-h-64 overflow-auto border rounded-lg">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Bank Account</TableHead>
-                    <TableHead className="text-right">Net Pay</TableHead>
+                    <TableHead>พนักงาน</TableHead>
+                    <TableHead>บัญชีธนาคาร</TableHead>
+                    <TableHead className="text-right">เงินสุทธิ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -387,7 +388,7 @@ export function PayrollAccountingView() {
                       <TableRow key={payslip.id}>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{profile?.full_name || "Unknown"}</p>
+                            <p className="font-medium">{profile?.full_name || "ไม่ทราบชื่อ"}</p>
                             <p className="text-xs text-muted-foreground">{profile?.employee_id}</p>
                           </div>
                         </TableCell>
@@ -398,7 +399,7 @@ export function PayrollAccountingView() {
                               <p className="text-xs text-muted-foreground font-mono">{profile.bank_account_number}</p>
                             </div>
                           ) : (
-                            <span className="text-xs text-destructive">No bank info</span>
+                            <span className="text-xs text-destructive">ไม่มีข้อมูลธนาคาร</span>
                           )}
                         </TableCell>
                         <TableCell className="text-right font-semibold">
@@ -412,25 +413,19 @@ export function PayrollAccountingView() {
             </div>
             <div className="bg-muted p-4 rounded-lg mt-4 space-y-2">
               <p>
-                <strong>Total employees:</strong> {selectedPayslips.length}
+                <strong>จำนวนพนักงานทั้งหมด:</strong> {selectedPayslips.length} คน
               </p>
               <p>
-                <strong>Total amount:</strong> ฿{selectedTotal.toLocaleString()}
+                <strong>ยอดรวมทั้งหมด:</strong> ฿{selectedTotal.toLocaleString()}
               </p>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              This action will mark the selected payslips as paid and cannot be undone.
-            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
-              Cancel
+              ยกเลิก
             </Button>
-            <Button
-              onClick={() => processPaymentMutation.mutate(selectedPayslips)}
-              disabled={processPaymentMutation.isPending}
-            >
-              {processPaymentMutation.isPending ? "Processing..." : "Confirm & Process"}
+            <Button onClick={() => processPaymentMutation.mutate(selectedPayslips)} disabled={processPaymentMutation.isPending}>
+              {processPaymentMutation.isPending ? "กำลังประมวลผล..." : "ยืนยันและประมวลผล"}
             </Button>
           </DialogFooter>
         </DialogContent>

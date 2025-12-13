@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend } from "date-fns";
+import { th } from "date-fns/locale";
 
 interface EmployeeReportData {
   id: string;
@@ -124,7 +125,7 @@ export function HRReportView() {
     return {
       id: emp.id,
       employee_id: emp.employee_id || "-",
-      full_name: emp.full_name || "Unknown",
+      full_name: emp.full_name || "ไม่ทราบชื่อ",
       present_days: empAttendance.filter((a) => a.status === "present").length,
       absent_days: empAttendance.filter((a) => a.status === "absent").length,
       late_days: empAttendance.filter((a) => a.status === "late").length,
@@ -190,11 +191,11 @@ export function HRReportView() {
         if (error) throw error;
       }
 
-      toast.success("Bonus and commission updated successfully");
+      toast.success("อัปเดตโบนัสและคอมมิชชั่นสำเร็จ");
       queryClient.invalidateQueries({ queryKey: ["payslips-report", selectedMonth] });
       setEditingEmployee(null);
     } catch (error: any) {
-      toast.error(error.message || "Failed to update");
+      toast.error(error.message || "ไม่สามารถอัปเดตได้");
     } finally {
       setIsSaving(false);
     }
@@ -205,9 +206,9 @@ export function HRReportView() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>HR Report - ${format(monthStart, "MMMM yyyy")}</title>
+        <title>รายงาน HR - ${format(monthStart, "MMMM yyyy", { locale: th })}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
+          body { font-family: 'Sarabun', Arial, sans-serif; padding: 20px; }
           h1 { text-align: center; margin-bottom: 10px; }
           h2 { text-align: center; color: #666; margin-bottom: 30px; }
           table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -222,22 +223,22 @@ export function HRReportView() {
         </style>
       </head>
       <body>
-        <h1>Monthly HR Report</h1>
-        <h2>${format(monthStart, "MMMM yyyy")}</h2>
-        <p>Working Days: ${workingDays} | Generated: ${format(new Date(), "MMMM d, yyyy HH:mm")}</p>
+        <h1>รายงานประจำเดือน HR</h1>
+        <h2>${format(monthStart, "MMMM yyyy", { locale: th })}</h2>
+        <p>วันทำงาน: ${workingDays} วัน | สร้างเมื่อ: ${format(new Date(), "d MMMM yyyy HH:mm", { locale: th })}</p>
         
         <table>
           <thead>
             <tr>
-              <th>Employee ID</th>
-              <th>Name</th>
-              <th>Present</th>
-              <th>Absent</th>
-              <th>Late</th>
-              <th>Leave Days</th>
-              <th>OT Hours</th>
-              <th>Bonus</th>
-              <th>Commission</th>
+              <th>รหัสพนักงาน</th>
+              <th>ชื่อ-นามสกุล</th>
+              <th>มาทำงาน</th>
+              <th>ขาดงาน</th>
+              <th>มาสาย</th>
+              <th>วันลา</th>
+              <th>ชม. OT</th>
+              <th>โบนัส</th>
+              <th>คอมมิชชั่น</th>
             </tr>
           </thead>
           <tbody>
@@ -262,15 +263,15 @@ export function HRReportView() {
         </table>
         
         <div class="summary">
-          <p><strong>Summary:</strong></p>
-          <p>Total Employees: ${reportData.length}</p>
-          <p>Total OT Hours: ${reportData.reduce((sum, e) => sum + e.ot_hours, 0)}</p>
-          <p>Total Bonus: ฿${reportData.reduce((sum, e) => sum + e.bonus, 0).toLocaleString()}</p>
-          <p>Total Commission: ฿${reportData.reduce((sum, e) => sum + e.commission, 0).toLocaleString()}</p>
+          <p><strong>สรุป:</strong></p>
+          <p>จำนวนพนักงานทั้งหมด: ${reportData.length} คน</p>
+          <p>รวมชั่วโมง OT: ${reportData.reduce((sum, e) => sum + e.ot_hours, 0)} ชม.</p>
+          <p>รวมโบนัส: ฿${reportData.reduce((sum, e) => sum + e.bonus, 0).toLocaleString()}</p>
+          <p>รวมคอมมิชชั่น: ฿${reportData.reduce((sum, e) => sum + e.commission, 0).toLocaleString()}</p>
         </div>
         
         <div class="footer">
-          <p>This report is for internal use by the Accounting department</p>
+          <p>รายงานนี้สำหรับใช้ภายในฝ่ายบัญชี</p>
         </div>
       </body>
       </html>
@@ -282,13 +283,13 @@ export function HRReportView() {
       printWindow.document.close();
       printWindow.print();
     } else {
-      toast.error("Please allow popups to print the report");
+      toast.error("กรุณาอนุญาต popup เพื่อพิมพ์รายงาน");
     }
   };
 
   const months = Array.from({ length: 12 }, (_, i) => {
     const date = new Date(currentDate.getFullYear(), i, 1);
-    return { value: format(date, "yyyy-MM"), label: format(date, "MMMM yyyy") };
+    return { value: format(date, "yyyy-MM"), label: format(date, "MMMM yyyy", { locale: th }) };
   });
 
   return (
@@ -297,13 +298,13 @@ export function HRReportView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            HR Monthly Report
+            รายงานประจำเดือน HR
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-2">
-              <Label>Select Month</Label>
+              <Label>เลือกเดือน</Label>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                 <SelectTrigger className="w-48">
                   <SelectValue />
@@ -319,28 +320,28 @@ export function HRReportView() {
             </div>
             <Button onClick={generatePDF}>
               <Printer className="h-4 w-4 mr-2" />
-              Print / Save as PDF
+              พิมพ์ / บันทึกเป็น PDF
             </Button>
           </div>
 
           <div className="text-sm text-muted-foreground">
-            Working days in {format(monthStart, "MMMM yyyy")}: <strong>{workingDays}</strong>
+            วันทำงานในเดือน {format(monthStart, "MMMM yyyy", { locale: th })}: <strong>{workingDays} วัน</strong>
           </div>
 
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employee ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="text-center">Present</TableHead>
-                  <TableHead className="text-center">Absent</TableHead>
-                  <TableHead className="text-center">Late</TableHead>
-                  <TableHead className="text-center">Leave</TableHead>
-                  <TableHead className="text-center">OT Hours</TableHead>
-                  <TableHead className="text-right">Bonus</TableHead>
-                  <TableHead className="text-right">Commission</TableHead>
-                  <TableHead className="text-center">Actions</TableHead>
+                  <TableHead>รหัสพนักงาน</TableHead>
+                  <TableHead>ชื่อ-นามสกุล</TableHead>
+                  <TableHead className="text-center">มาทำงาน</TableHead>
+                  <TableHead className="text-center">ขาดงาน</TableHead>
+                  <TableHead className="text-center">มาสาย</TableHead>
+                  <TableHead className="text-center">วันลา</TableHead>
+                  <TableHead className="text-center">ชม. OT</TableHead>
+                  <TableHead className="text-right">โบนัส</TableHead>
+                  <TableHead className="text-right">คอมมิชชั่น</TableHead>
+                  <TableHead className="text-center">การดำเนินการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -369,7 +370,7 @@ export function HRReportView() {
                 {reportData.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={10} className="text-center text-muted-foreground">
-                      No data available
+                      ไม่มีข้อมูล
                     </TableCell>
                   </TableRow>
                 )}
@@ -381,19 +382,19 @@ export function HRReportView() {
             <CardContent className="pt-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Total Employees</p>
-                  <p className="text-xl font-bold">{reportData.length}</p>
+                  <p className="text-muted-foreground">จำนวนพนักงาน</p>
+                  <p className="text-xl font-bold">{reportData.length} คน</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Total OT Hours</p>
-                  <p className="text-xl font-bold">{reportData.reduce((sum, e) => sum + e.ot_hours, 0)}</p>
+                  <p className="text-muted-foreground">รวมชั่วโมง OT</p>
+                  <p className="text-xl font-bold">{reportData.reduce((sum, e) => sum + e.ot_hours, 0)} ชม.</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Total Bonus</p>
+                  <p className="text-muted-foreground">รวมโบนัส</p>
                   <p className="text-xl font-bold">฿{reportData.reduce((sum, e) => sum + e.bonus, 0).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Total Commission</p>
+                  <p className="text-muted-foreground">รวมคอมมิชชั่น</p>
                   <p className="text-xl font-bold">฿{reportData.reduce((sum, e) => sum + e.commission, 0).toLocaleString()}</p>
                 </div>
               </div>
@@ -406,19 +407,19 @@ export function HRReportView() {
       <Dialog open={!!editingEmployee} onOpenChange={(open) => !open && setEditingEmployee(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Bonus & Commission</DialogTitle>
+            <DialogTitle>แก้ไขโบนัสและคอมมิชชั่น</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Employee</p>
+              <p className="text-sm text-muted-foreground">พนักงาน</p>
               <p className="font-medium">{editingEmployee?.full_name} ({editingEmployee?.employee_id})</p>
             </div>
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Period</p>
-              <p className="font-medium">{format(monthStart, "MMMM yyyy")}</p>
+              <p className="text-sm text-muted-foreground">งวด</p>
+              <p className="font-medium">{format(monthStart, "MMMM yyyy", { locale: th })}</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="bonus">Bonus (฿)</Label>
+              <Label htmlFor="bonus">โบนัส (฿)</Label>
               <Input
                 id="bonus"
                 type="number"
@@ -428,7 +429,7 @@ export function HRReportView() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="commission">Commission (฿)</Label>
+              <Label htmlFor="commission">คอมมิชชั่น (฿)</Label>
               <Input
                 id="commission"
                 type="number"
@@ -440,10 +441,10 @@ export function HRReportView() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingEmployee(null)}>
-              Cancel
+              ยกเลิก
             </Button>
             <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? "Saving..." : "Save Changes"}
+              {isSaving ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
             </Button>
           </DialogFooter>
         </DialogContent>

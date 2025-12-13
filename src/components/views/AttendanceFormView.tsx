@@ -98,10 +98,10 @@ export function AttendanceFormView() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance"] });
-      toast.success("Attendance saved successfully");
+      toast.success("บันทึกการเข้างานสำเร็จ");
     },
     onError: (error) => {
-      toast.error("Failed to save attendance: " + error.message);
+      toast.error("บันทึกการเข้างานไม่สำเร็จ: " + error.message);
     },
   });
 
@@ -128,13 +128,13 @@ export function AttendanceFormView() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ClipboardList className="h-5 w-5" />
-            Attendance Form
+            แบบฟอร์มบันทึกการเข้างาน
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-4">
             <div className="space-y-2">
-              <Label>Date</Label>
+              <Label>วันที่</Label>
               <Input
                 type="date"
                 value={selectedDate}
@@ -143,11 +143,11 @@ export function AttendanceFormView() {
               />
             </div>
             <div className="space-y-2 flex-1 min-w-[200px]">
-              <Label>Search</Label>
+              <Label>ค้นหา</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search employee..."
+                  placeholder="ค้นหาพนักงาน..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -157,23 +157,23 @@ export function AttendanceFormView() {
             <div className="space-y-2 flex items-end">
               <Button onClick={() => saveAttendance.mutate()} disabled={saveAttendance.isPending}>
                 <Save className="h-4 w-4 mr-2" />
-                {saveAttendance.isPending ? "Saving..." : "Save All"}
+                {saveAttendance.isPending ? "กำลังบันทึก..." : "บันทึกทั้งหมด"}
               </Button>
             </div>
           </div>
 
           {loadingEmployees || loadingAttendance ? (
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">กำลังโหลด...</p>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Employee ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Check In</TableHead>
-                    <TableHead>Check Out</TableHead>
+                    <TableHead>รหัสพนักงาน</TableHead>
+                    <TableHead>ชื่อ-นามสกุล</TableHead>
+                    <TableHead>สถานะ</TableHead>
+                    <TableHead>เวลาเข้างาน</TableHead>
+                    <TableHead>เวลาออกงาน</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -190,11 +190,11 @@ export function AttendanceFormView() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="present">Present</SelectItem>
-                            <SelectItem value="absent">Absent</SelectItem>
-                            <SelectItem value="late">Late</SelectItem>
-                            <SelectItem value="half_day">Half Day</SelectItem>
-                            <SelectItem value="leave">Leave</SelectItem>
+                            <SelectItem value="present">มาทำงาน</SelectItem>
+                            <SelectItem value="absent">ขาดงาน</SelectItem>
+                            <SelectItem value="late">มาสาย</SelectItem>
+                            <SelectItem value="half_day">ครึ่งวัน</SelectItem>
+                            <SelectItem value="leave">ลางาน</SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
@@ -221,7 +221,7 @@ export function AttendanceFormView() {
                   {displayData.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground">
-                        No employees found
+                        ไม่พบพนักงาน
                       </TableCell>
                     </TableRow>
                   )}

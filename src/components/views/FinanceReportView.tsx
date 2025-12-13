@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { th } from "date-fns/locale";
 
 export function FinanceReportView() {
   const currentDate = new Date();
@@ -15,7 +16,7 @@ export function FinanceReportView() {
 
   const months = Array.from({ length: 12 }, (_, i) => {
     const date = subMonths(currentDate, i);
-    return { value: format(date, "yyyy-MM"), label: format(date, "MMMM yyyy") };
+    return { value: format(date, "yyyy-MM"), label: format(date, "MMMM yyyy", { locale: th }) };
   });
 
   const monthStart = startOfMonth(new Date(selectedMonth + "-01"));
@@ -55,11 +56,11 @@ export function FinanceReportView() {
 
   // Company expense categories for the report
   const expenseCategories = [
-    { name: "Base Salaries", amount: totalBaseSalaries, percentage: totalGrossPay > 0 ? (totalBaseSalaries / totalGrossPay * 100).toFixed(1) : 0 },
-    { name: "Allowances", amount: totalAllowances, percentage: totalGrossPay > 0 ? (totalAllowances / totalGrossPay * 100).toFixed(1) : 0 },
-    { name: "Overtime Pay", amount: totalOvertimePay, percentage: totalGrossPay > 0 ? (totalOvertimePay / totalGrossPay * 100).toFixed(1) : 0 },
-    { name: "Bonus", amount: totalBonus, percentage: totalGrossPay > 0 ? (totalBonus / totalGrossPay * 100).toFixed(1) : 0 },
-    { name: "Commission", amount: totalCommission, percentage: totalGrossPay > 0 ? (totalCommission / totalGrossPay * 100).toFixed(1) : 0 },
+    { name: "เงินเดือนพื้นฐาน", amount: totalBaseSalaries, percentage: totalGrossPay > 0 ? (totalBaseSalaries / totalGrossPay * 100).toFixed(1) : 0 },
+    { name: "เบี้ยเลี้ยง", amount: totalAllowances, percentage: totalGrossPay > 0 ? (totalAllowances / totalGrossPay * 100).toFixed(1) : 0 },
+    { name: "ค่าล่วงเวลา", amount: totalOvertimePay, percentage: totalGrossPay > 0 ? (totalOvertimePay / totalGrossPay * 100).toFixed(1) : 0 },
+    { name: "โบนัส", amount: totalBonus, percentage: totalGrossPay > 0 ? (totalBonus / totalGrossPay * 100).toFixed(1) : 0 },
+    { name: "คอมมิชชั่น", amount: totalCommission, percentage: totalGrossPay > 0 ? (totalCommission / totalGrossPay * 100).toFixed(1) : 0 },
   ];
 
   const handlePrint = () => {
@@ -68,25 +69,25 @@ export function FinanceReportView() {
 
   const handleExport = () => {
     const reportData = [
-      ["Company Finance Report", format(monthStart, "MMMM yyyy")],
+      ["รายงานการเงินบริษัท", format(monthStart, "MMMM yyyy", { locale: th })],
       [""],
-      ["INCOME SUMMARY"],
-      ["Category", "Amount (THB)", "% of Total"],
+      ["สรุปรายได้"],
+      ["หมวดหมู่", "จำนวนเงิน (บาท)", "% ของรวม"],
       ...expenseCategories.map(cat => [cat.name, cat.amount.toString(), `${cat.percentage}%`]),
-      ["Total Gross Payroll", totalGrossPay.toString(), "100%"],
+      ["รวมเงินเดือนทั้งหมด", totalGrossPay.toString(), "100%"],
       [""],
-      ["DEDUCTION SUMMARY"],
-      ["Tax Withholding", totalTaxDeductions.toString()],
-      ["Social Security (Company)", totalSocialSecurity.toString()],
-      ["Other Deductions", totalOtherDeductions.toString()],
-      ["Total Deductions", totalDeductions.toString()],
+      ["สรุปการหักเงิน"],
+      ["ภาษีหัก ณ ที่จ่าย", totalTaxDeductions.toString()],
+      ["ประกันสังคม (บริษัท)", totalSocialSecurity.toString()],
+      ["หักอื่นๆ", totalOtherDeductions.toString()],
+      ["รวมการหักเงิน", totalDeductions.toString()],
       [""],
-      ["NET PAYROLL COST", totalNetPay.toString()],
+      ["ยอดจ่ายสุทธิ", totalNetPay.toString()],
       [""],
-      ["WORKFORCE SUMMARY"],
-      ["Total Employees", employeeCount.toString()],
-      ["Paid", paidCount.toString()],
-      ["Pending", pendingCount.toString()],
+      ["สรุปบุคลากร"],
+      ["จำนวนพนักงานทั้งหมด", employeeCount.toString()],
+      ["จ่ายแล้ว", paidCount.toString()],
+      ["รอดำเนินการ", pendingCount.toString()],
     ];
 
     const csvContent = reportData.map(row => row.join(",")).join("\n");
@@ -94,7 +95,7 @@ export function FinanceReportView() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `company-finance-report-${selectedMonth}.csv`;
+    a.download = `รายงานการเงิน-${selectedMonth}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -104,7 +105,7 @@ export function FinanceReportView() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Building2 className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Company Finance Report</h1>
+          <h1 className="text-2xl font-bold text-foreground">รายงานการเงินบริษัท</h1>
         </div>
         <div className="flex items-center gap-4">
           <Select value={selectedMonth} onValueChange={setSelectedMonth}>
@@ -121,11 +122,11 @@ export function FinanceReportView() {
           </Select>
           <Button onClick={handleExport} variant="outline">
             <Download className="h-4 w-4 mr-2" />
-            Export CSV
+            ส่งออก CSV
           </Button>
           <Button onClick={handlePrint} variant="outline">
             <Printer className="h-4 w-4 mr-2" />
-            Print
+            พิมพ์
           </Button>
         </div>
       </div>
@@ -134,7 +135,7 @@ export function FinanceReportView() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Payroll Cost</CardTitle>
+            <CardTitle className="text-sm font-medium">ค่าใช้จ่ายเงินเดือนรวม</CardTitle>
             <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -143,13 +144,13 @@ export function FinanceReportView() {
             ) : (
               <div className="text-2xl font-bold">฿{totalGrossPay.toLocaleString()}</div>
             )}
-            <p className="text-xs text-muted-foreground">Gross payroll expense</p>
+            <p className="text-xs text-muted-foreground">ค่าใช้จ่ายเงินเดือนรวม</p>
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-red-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Deductions</CardTitle>
+            <CardTitle className="text-sm font-medium">การหักเงินรวม</CardTitle>
             <TrendingDown className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
@@ -158,13 +159,13 @@ export function FinanceReportView() {
             ) : (
               <div className="text-2xl font-bold">฿{totalDeductions.toLocaleString()}</div>
             )}
-            <p className="text-xs text-muted-foreground">Tax & Social Security</p>
+            <p className="text-xs text-muted-foreground">ภาษีและประกันสังคม</p>
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Payout</CardTitle>
+            <CardTitle className="text-sm font-medium">ยอดจ่ายสุทธิ</CardTitle>
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -173,23 +174,23 @@ export function FinanceReportView() {
             ) : (
               <div className="text-2xl font-bold text-primary">฿{totalNetPay.toLocaleString()}</div>
             )}
-            <p className="text-xs text-muted-foreground">Actual disbursement</p>
+            <p className="text-xs text-muted-foreground">ยอดจ่ายจริง</p>
           </CardContent>
         </Card>
 
         <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Workforce</CardTitle>
+            <CardTitle className="text-sm font-medium">บุคลากร</CardTitle>
             <PieChart className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <Skeleton className="h-8 w-24" />
             ) : (
-              <div className="text-2xl font-bold">{employeeCount}</div>
+              <div className="text-2xl font-bold">{employeeCount} คน</div>
             )}
             <p className="text-xs text-muted-foreground">
-              {paidCount} paid / {pendingCount} pending
+              จ่ายแล้ว {paidCount} / รอดำเนินการ {pendingCount}
             </p>
           </CardContent>
         </Card>
@@ -201,15 +202,15 @@ export function FinanceReportView() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-600" />
-              Payroll Expense Breakdown
+              รายละเอียดค่าใช้จ่ายเงินเดือน
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>หมวดหมู่</TableHead>
+                  <TableHead className="text-right">จำนวนเงิน</TableHead>
                   <TableHead className="text-right">%</TableHead>
                 </TableRow>
               </TableHeader>
@@ -222,7 +223,7 @@ export function FinanceReportView() {
                   </TableRow>
                 ))}
                 <TableRow className="bg-muted/50 font-bold">
-                  <TableCell>Total Gross Payroll</TableCell>
+                  <TableCell>รวมเงินเดือนทั้งหมด</TableCell>
                   <TableCell className="text-right text-green-600">฿{totalGrossPay.toLocaleString()}</TableCell>
                   <TableCell className="text-right">100%</TableCell>
                 </TableRow>
@@ -235,32 +236,32 @@ export function FinanceReportView() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingDown className="h-5 w-5 text-red-600" />
-              Statutory Deductions
+              การหักเงินตามกฎหมาย
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Deduction Type</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>ประเภทการหัก</TableHead>
+                  <TableHead className="text-right">จำนวนเงิน</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell>Withholding Tax</TableCell>
+                  <TableCell>ภาษีหัก ณ ที่จ่าย</TableCell>
                   <TableCell className="text-right">฿{totalTaxDeductions.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>Social Security Contribution</TableCell>
+                  <TableCell>เงินสมทบประกันสังคม</TableCell>
                   <TableCell className="text-right">฿{totalSocialSecurity.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>Other Deductions</TableCell>
+                  <TableCell>หักอื่นๆ</TableCell>
                   <TableCell className="text-right">฿{totalOtherDeductions.toLocaleString()}</TableCell>
                 </TableRow>
                 <TableRow className="bg-muted/50 font-bold">
-                  <TableCell>Total Deductions</TableCell>
+                  <TableCell>รวมการหักเงิน</TableCell>
                   <TableCell className="text-right text-red-600">฿{totalDeductions.toLocaleString()}</TableCell>
                 </TableRow>
               </TableBody>
@@ -272,30 +273,30 @@ export function FinanceReportView() {
       {/* Financial Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Monthly Financial Summary</CardTitle>
+          <CardTitle>สรุปการเงินประจำเดือน</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-6 md:grid-cols-3">
             <div className="space-y-2 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
-              <p className="text-sm text-muted-foreground">Gross Payroll Expense</p>
+              <p className="text-sm text-muted-foreground">ค่าใช้จ่ายเงินเดือนรวม</p>
               <p className="text-3xl font-bold text-green-600">฿{totalGrossPay.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Total compensation cost</p>
+              <p className="text-xs text-muted-foreground">ค่าตอบแทนรวมทั้งหมด</p>
             </div>
             <div className="space-y-2 p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
-              <p className="text-sm text-muted-foreground">Statutory Obligations</p>
+              <p className="text-sm text-muted-foreground">ภาระผูกพันตามกฎหมาย</p>
               <p className="text-3xl font-bold text-red-600">฿{totalDeductions.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Tax & social security</p>
+              <p className="text-xs text-muted-foreground">ภาษีและประกันสังคม</p>
             </div>
             <div className="space-y-2 p-4 bg-primary/10 rounded-lg">
-              <p className="text-sm text-muted-foreground">Net Cash Outflow</p>
+              <p className="text-sm text-muted-foreground">กระแสเงินสดจ่ายสุทธิ</p>
               <p className="text-3xl font-bold text-primary">฿{totalNetPay.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">Employee payments</p>
+              <p className="text-xs text-muted-foreground">ยอดจ่ายพนักงาน</p>
             </div>
           </div>
 
           {payslips && payslips.length === 0 && (
             <p className="text-center text-muted-foreground py-8 mt-4">
-              No payroll data for {format(monthStart, "MMMM yyyy")}.
+              ไม่มีข้อมูลเงินเดือนสำหรับเดือน {format(monthStart, "MMMM yyyy", { locale: th })}
             </p>
           )}
         </CardContent>

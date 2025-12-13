@@ -12,6 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth } from "date-fns";
+import { th } from "date-fns/locale";
 
 // Thai tax brackets (simplified)
 const calculateTax = (annualIncome: number): number => {
@@ -70,12 +71,12 @@ export function SalaryCalculatorView() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payslips"] });
-      toast.success("Payslip generated successfully!");
+      toast.success("สร้างสลิปเงินเดือนสำเร็จ!");
       setShowGenerateDialog(false);
       resetForm();
     },
     onError: (error) => {
-      toast.error("Failed to generate payslip: " + error.message);
+      toast.error("ไม่สามารถสร้างสลิปเงินเดือน: " + error.message);
     },
   });
 
@@ -95,13 +96,13 @@ export function SalaryCalculatorView() {
 
   const handleCalculate = () => {
     if (!selectedEmployee) {
-      toast.error("Please select an employee");
+      toast.error("กรุณาเลือกพนักงาน");
       return;
     }
 
     const salary = getEmployeeSalary(selectedEmployee);
     if (!salary) {
-      toast.error("No salary data found for this employee");
+      toast.error("ไม่พบข้อมูลเงินเดือนของพนักงานนี้");
       return;
     }
 
@@ -152,24 +153,24 @@ export function SalaryCalculatorView() {
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-2">
         <Calculator className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Salary Calculator</h1>
+        <h1 className="text-2xl font-bold text-foreground">เครื่องคำนวณเงินเดือน</h1>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Input Form */}
         <Card>
           <CardHeader>
-            <CardTitle>Calculate Salary</CardTitle>
+            <CardTitle>คำนวณเงินเดือน</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Select Employee</Label>
+              <Label>เลือกพนักงาน</Label>
               {profilesLoading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
                 <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select an employee" />
+                    <SelectValue placeholder="เลือกพนักงาน" />
                   </SelectTrigger>
                   <SelectContent>
                     {profiles?.map((profile) => (
@@ -184,33 +185,33 @@ export function SalaryCalculatorView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Pay Period Start</Label>
+                <Label>วันเริ่มต้นงวด</Label>
                 <Input type="date" value={payPeriodStart} onChange={(e) => setPayPeriodStart(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Pay Period End</Label>
+                <Label>วันสิ้นสุดงวด</Label>
                 <Input type="date" value={payPeriodEnd} onChange={(e) => setPayPeriodEnd(e.target.value)} />
               </div>
             </div>
 
             {selectedSalary && (
               <div className="p-4 bg-muted rounded-lg space-y-2">
-                <p className="font-medium">Current Salary Structure:</p>
+                <p className="font-medium">โครงสร้างเงินเดือนปัจจุบัน:</p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <span className="text-muted-foreground">Base Salary:</span>
+                  <span className="text-muted-foreground">เงินเดือนพื้นฐาน:</span>
                   <span>฿{Number(selectedSalary.base_salary).toLocaleString()}</span>
-                  <span className="text-muted-foreground">Housing Allowance:</span>
+                  <span className="text-muted-foreground">ค่าที่พัก:</span>
                   <span>฿{Number(selectedSalary.housing_allowance || 0).toLocaleString()}</span>
-                  <span className="text-muted-foreground">Transport Allowance:</span>
+                  <span className="text-muted-foreground">ค่าเดินทาง:</span>
                   <span>฿{Number(selectedSalary.transport_allowance || 0).toLocaleString()}</span>
-                  <span className="text-muted-foreground">Other Allowances:</span>
+                  <span className="text-muted-foreground">เบี้ยเลี้ยงอื่นๆ:</span>
                   <span>฿{Number(selectedSalary.other_allowances || 0).toLocaleString()}</span>
                 </div>
               </div>
             )}
 
             <div className="space-y-2">
-              <Label>Overtime Pay (฿)</Label>
+              <Label>ค่าล่วงเวลา (฿)</Label>
               <Input
                 type="number"
                 value={overtimePay}
@@ -221,11 +222,11 @@ export function SalaryCalculatorView() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Bonus (฿)</Label>
+                <Label>โบนัส (฿)</Label>
                 <Input type="number" value={bonus} onChange={(e) => setBonus(Number(e.target.value))} min={0} />
               </div>
               <div className="space-y-2">
-                <Label>Commission (฿)</Label>
+                <Label>คอมมิชชั่น (฿)</Label>
                 <Input
                   type="number"
                   value={commission}
@@ -236,7 +237,7 @@ export function SalaryCalculatorView() {
             </div>
 
             <div className="space-y-2">
-              <Label>Other Deductions (฿)</Label>
+              <Label>หักอื่นๆ (฿)</Label>
               <Input
                 type="number"
                 value={otherDeductions}
@@ -247,7 +248,7 @@ export function SalaryCalculatorView() {
 
             <Button onClick={handleCalculate} className="w-full">
               <Calculator className="h-4 w-4 mr-2" />
-              Calculate
+              คำนวณ
             </Button>
           </CardContent>
         </Card>
@@ -257,7 +258,7 @@ export function SalaryCalculatorView() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Payslip Preview
+              ตัวอย่างสลิปเงินเดือน
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -266,67 +267,67 @@ export function SalaryCalculatorView() {
                 <div className="p-4 bg-muted rounded-lg">
                   <p className="font-medium mb-2">{selectedProfile?.full_name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProfile?.employee_id} | Period: {format(new Date(payPeriodStart), "MMM d")} -{" "}
-                    {format(new Date(payPeriodEnd), "MMM d, yyyy")}
+                    {selectedProfile?.employee_id} | งวด: {format(new Date(payPeriodStart), "d MMM", { locale: th })} -{" "}
+                    {format(new Date(payPeriodEnd), "d MMM yyyy", { locale: th })}
                   </p>
                 </div>
 
                 <Table>
                   <TableBody>
                     <TableRow>
-                      <TableCell className="font-medium">Base Salary</TableCell>
+                      <TableCell className="font-medium">เงินเดือนพื้นฐาน</TableCell>
                       <TableCell className="text-right">฿{calculatedPayslip.base_salary.toLocaleString()}</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">Allowances</TableCell>
+                      <TableCell className="font-medium">เบี้ยเลี้ยง</TableCell>
                       <TableCell className="text-right text-green-600">
                         +฿{calculatedPayslip.allowances.toLocaleString()}
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">Overtime Pay</TableCell>
+                      <TableCell className="font-medium">ค่าล่วงเวลา</TableCell>
                       <TableCell className="text-right text-green-600">
                         +฿{calculatedPayslip.overtime_pay.toLocaleString()}
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">Bonus</TableCell>
+                      <TableCell className="font-medium">โบนัส</TableCell>
                       <TableCell className="text-right text-green-600">
                         +฿{calculatedPayslip.bonus.toLocaleString()}
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">Commission</TableCell>
+                      <TableCell className="font-medium">คอมมิชชั่น</TableCell>
                       <TableCell className="text-right text-green-600">
                         +฿{calculatedPayslip.commission.toLocaleString()}
                       </TableCell>
                     </TableRow>
                     <TableRow className="bg-muted/50">
-                      <TableCell className="font-bold">Gross Pay</TableCell>
+                      <TableCell className="font-bold">รายรับรวม</TableCell>
                       <TableCell className="text-right font-bold">
                         ฿{calculatedPayslip.gross_pay.toLocaleString()}
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">Tax Deduction</TableCell>
+                      <TableCell className="font-medium">หักภาษี</TableCell>
                       <TableCell className="text-right text-red-600">
                         -฿{calculatedPayslip.tax_deduction.toLocaleString()}
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">Social Security (5%)</TableCell>
+                      <TableCell className="font-medium">ประกันสังคม (5%)</TableCell>
                       <TableCell className="text-right text-red-600">
                         -฿{calculatedPayslip.social_security.toLocaleString()}
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">Other Deductions</TableCell>
+                      <TableCell className="font-medium">หักอื่นๆ</TableCell>
                       <TableCell className="text-right text-red-600">
                         -฿{calculatedPayslip.other_deductions.toLocaleString()}
                       </TableCell>
                     </TableRow>
                     <TableRow className="bg-primary/10">
-                      <TableCell className="font-bold text-primary">Net Pay</TableCell>
+                      <TableCell className="font-bold text-primary">รายรับสุทธิ</TableCell>
                       <TableCell className="text-right font-bold text-primary text-lg">
                         ฿{calculatedPayslip.net_pay.toLocaleString()}
                       </TableCell>
@@ -336,13 +337,13 @@ export function SalaryCalculatorView() {
 
                 <Button onClick={handleGeneratePayslip} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
-                  Generate Payslip
+                  สร้างสลิปเงินเดือน
                 </Button>
               </div>
             ) : (
               <div className="text-center py-12 text-muted-foreground">
                 <Calculator className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Select an employee and click Calculate to preview payslip</p>
+                <p>เลือกพนักงานและกดคำนวณเพื่อดูตัวอย่างสลิปเงินเดือน</p>
               </div>
             )}
           </CardContent>
@@ -353,28 +354,28 @@ export function SalaryCalculatorView() {
       <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Payslip Generation</DialogTitle>
+            <DialogTitle>ยืนยันการสร้างสลิปเงินเดือน</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p>You are about to generate a payslip for:</p>
+            <p>คุณกำลังจะสร้างสลิปเงินเดือนสำหรับ:</p>
             <div className="bg-muted p-4 rounded-lg mt-4 space-y-2">
               <p>
-                <strong>Employee:</strong> {selectedProfile?.full_name}
+                <strong>พนักงาน:</strong> {selectedProfile?.full_name}
               </p>
               <p>
-                <strong>Period:</strong> {payPeriodStart} to {payPeriodEnd}
+                <strong>งวด:</strong> {payPeriodStart} ถึง {payPeriodEnd}
               </p>
               <p>
-                <strong>Net Pay:</strong> ฿{calculatedPayslip?.net_pay.toLocaleString()}
+                <strong>รายรับสุทธิ:</strong> ฿{calculatedPayslip?.net_pay.toLocaleString()}
               </p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowGenerateDialog(false)}>
-              Cancel
+              ยกเลิก
             </Button>
             <Button onClick={confirmGeneratePayslip} disabled={createPayslipMutation.isPending}>
-              {createPayslipMutation.isPending ? "Generating..." : "Confirm & Generate"}
+              {createPayslipMutation.isPending ? "กำลังสร้าง..." : "ยืนยันและสร้าง"}
             </Button>
           </DialogFooter>
         </DialogContent>
