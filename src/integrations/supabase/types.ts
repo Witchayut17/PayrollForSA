@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          attendance_date: string
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          recorded_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attendance_date: string
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attendance_date?: string
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       leave_requests: {
         Row: {
           created_at: string
@@ -105,6 +144,8 @@ export type Database = {
         Row: {
           allowances: number | null
           base_salary: number
+          bonus: number | null
+          commission: number | null
           created_at: string
           generated_at: string
           gross_pay: number
@@ -123,6 +164,8 @@ export type Database = {
         Insert: {
           allowances?: number | null
           base_salary: number
+          bonus?: number | null
+          commission?: number | null
           created_at?: string
           generated_at?: string
           gross_pay: number
@@ -141,6 +184,8 @@ export type Database = {
         Update: {
           allowances?: number | null
           base_salary?: number
+          bonus?: number | null
+          commission?: number | null
           created_at?: string
           generated_at?: string
           gross_pay?: number
