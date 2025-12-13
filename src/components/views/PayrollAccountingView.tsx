@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { BookOpen, Send, Check, Printer, Download } from "lucide-react";
+import { BookOpen, Send, Check, Download, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,9 +43,11 @@ export function PayrollAccountingView() {
   });
 
   const { data: profiles } = useQuery({
-    queryKey: ["all-profiles"],
+    queryKey: ["all-profiles-with-bank"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("*");
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, employee_id, bank_name, bank_account_number");
       if (error) throw error;
       return data || [];
     },
@@ -114,14 +116,18 @@ export function PayrollAccountingView() {
       return {
         employee_id: profile?.employee_id || "",
         employee_name: profile?.full_name || "",
+        bank_name: profile?.bank_name || "",
+        bank_account_number: profile?.bank_account_number || "",
         net_pay: Number(payslip.net_pay),
         pay_period: `${payslip.pay_period_start} to ${payslip.pay_period_end}`,
       };
     });
 
     const csv = [
-      "Employee ID,Employee Name,Net Pay,Pay Period",
-      ...bankData.map((row) => `${row.employee_id},"${row.employee_name}",${row.net_pay},"${row.pay_period}"`),
+      "Employee ID,Employee Name,Bank Name,Bank Account Number,Net Pay,Pay Period",
+      ...bankData.map((row) => 
+        `${row.employee_id},"${row.employee_name}","${row.bank_name}","${row.bank_account_number}",${row.net_pay},"${row.pay_period}"`
+      ),
     ].join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -133,6 +139,9 @@ export function PayrollAccountingView() {
     URL.revokeObjectURL(url);
     toast.success("Bank transfer file exported successfully!");
   };
+
+  // Get selected payslips details for confirmation dialog
+  const selectedPayslipsDetails = payslips?.filter((p) => selectedPayslips.includes(p.id)) || [];
 
   return (
     <div className="p-6 space-y-6">
@@ -228,6 +237,7 @@ export function PayrollAccountingView() {
                 <TableRow>
                   <TableHead className="w-12">Select</TableHead>
                   <TableHead>Employee</TableHead>
+                  <TableHead>Bank Account</TableHead>
                   <TableHead>Pay Period</TableHead>
                   <TableHead className="text-right">Gross Pay</TableHead>
                   <TableHead className="text-right">Deductions</TableHead>
@@ -254,6 +264,19 @@ export function PayrollAccountingView() {
                           <p className="font-medium">{profile?.full_name || "Unknown"}</p>
                           <p className="text-xs text-muted-foreground">{profile?.employee_id}</p>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {profile?.bank_name && profile?.bank_account_number ? (
+                          <div className="flex items-start gap-2">
+                            <Building2 className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium text-sm">{profile.bank_name}</p>
+                              <p className="text-xs text-muted-foreground font-mono">{profile.bank_account_number}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-destructive">No bank info</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {format(new Date(payslip.pay_period_start), "MMM d")} -{" "}
@@ -289,6 +312,7 @@ export function PayrollAccountingView() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee</TableHead>
+                  <TableHead>Bank Account</TableHead>
                   <TableHead>Pay Period</TableHead>
                   <TableHead className="text-right">Net Pay</TableHead>
                   <TableHead>Paid At</TableHead>
@@ -304,6 +328,19 @@ export function PayrollAccountingView() {
                           <p className="font-medium">{profile?.full_name || "Unknown"}</p>
                           <p className="text-xs text-muted-foreground">{profile?.employee_id}</p>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {profile?.bank_name && profile?.bank_account_number ? (
+                          <div className="flex items-start gap-2">
+                            <Building2 className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium text-sm">{profile.bank_name}</p>
+                              <p className="text-xs text-muted-foreground font-mono">{profile.bank_account_number}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {format(new Date(payslip.pay_period_start), "MMM d")} -{" "}
@@ -328,15 +365,54 @@ export function PayrollAccountingView() {
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Confirm Payroll Processing</DialogTitle>
           </DialogHeader>
           <div className="py-4">
-            <p className="mb-4">You are about to process payment for:</p>
-            <div className="bg-muted p-4 rounded-lg space-y-2">
+            <p className="mb-4">You are about to process payment for the following employees:</p>
+            <div className="max-h-64 overflow-auto border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Bank Account</TableHead>
+                    <TableHead className="text-right">Net Pay</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedPayslipsDetails.map((payslip) => {
+                    const profile = profileMap.get(payslip.user_id);
+                    return (
+                      <TableRow key={payslip.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{profile?.full_name || "Unknown"}</p>
+                            <p className="text-xs text-muted-foreground">{profile?.employee_id}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {profile?.bank_name && profile?.bank_account_number ? (
+                            <div>
+                              <p className="text-sm">{profile.bank_name}</p>
+                              <p className="text-xs text-muted-foreground font-mono">{profile.bank_account_number}</p>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-destructive">No bank info</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          ฿{Number(payslip.net_pay).toLocaleString()}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="bg-muted p-4 rounded-lg mt-4 space-y-2">
               <p>
-                <strong>Number of employees:</strong> {selectedPayslips.length}
+                <strong>Total employees:</strong> {selectedPayslips.length}
               </p>
               <p>
                 <strong>Total amount:</strong> ฿{selectedTotal.toLocaleString()}
