@@ -30,7 +30,7 @@ export function useAuth() {
   const signUp = async (
     email: string,
     password: string,
-    metadata: { full_name: string; date_of_birth: string; employee_id: string }
+    metadata: { full_name: string; date_of_birth: string }
   ) => {
     const redirectUrl = `${window.location.origin}/`;
     
