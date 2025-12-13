@@ -60,10 +60,10 @@ export function ProfileView() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       setIsEditing(false);
-      toast.success("Profile updated successfully!");
+      toast.success("อัปเดตโปรไฟล์เรียบร้อยแล้ว!");
     },
     onError: (error) => {
-      toast.error("Failed to update profile: " + error.message);
+      toast.error("อัปเดตโปรไฟล์ไม่สำเร็จ: " + error.message);
     },
   });
 
@@ -82,10 +82,10 @@ export function ProfileView() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       setIsEditingBank(false);
-      toast.success("Bank information updated successfully!");
+      toast.success("อัปเดตข้อมูลธนาคารเรียบร้อยแล้ว!");
     },
     onError: (error) => {
-      toast.error("Failed to update bank info: " + error.message);
+      toast.error("อัปเดตข้อมูลธนาคารไม่สำเร็จ: " + error.message);
     },
   });
 
@@ -103,17 +103,17 @@ export function ProfileView() {
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <User className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
+        <h1 className="text-2xl font-bold text-foreground">โปรไฟล์ของฉัน</h1>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Profile Information */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Personal Information</CardTitle>
+            <CardTitle>ข้อมูลส่วนตัว</CardTitle>
             {!isEditing && (
               <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
-                Edit
+                แก้ไข
               </Button>
             )}
           </CardHeader>
@@ -127,16 +127,16 @@ export function ProfileView() {
             ) : isEditing ? (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName">ชื่อ-นามสกุล</Label>
                   <Input
                     id="fullName"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
+                    placeholder="กรอกชื่อ-นามสกุล"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                  <Label htmlFor="dateOfBirth">วันเกิด</Label>
                   <Input
                     id="dateOfBirth"
                     type="date"
@@ -147,7 +147,7 @@ export function ProfileView() {
                 <div className="flex gap-2">
                   <Button type="submit" disabled={updateProfile.isPending}>
                     <Save className="h-4 w-4 mr-2" />
-                    {updateProfile.isPending ? "Saving..." : "Save Changes"}
+                    {updateProfile.isPending ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
                   </Button>
                   <Button 
                     type="button" 
@@ -158,7 +158,7 @@ export function ProfileView() {
                       setDateOfBirth(profile?.date_of_birth || "");
                     }}
                   >
-                    Cancel
+                    ยกเลิก
                   </Button>
                 </div>
               </form>
@@ -167,18 +167,18 @@ export function ProfileView() {
                 <div className="flex items-center gap-3">
                   <User className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Full Name</p>
-                    <p className="font-medium">{profile?.full_name || "Not set"}</p>
+                    <p className="text-sm text-muted-foreground">ชื่อ-นามสกุล</p>
+                    <p className="font-medium">{profile?.full_name || "ยังไม่ได้ระบุ"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Calendar className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Date of Birth</p>
+                    <p className="text-sm text-muted-foreground">วันเกิด</p>
                     <p className="font-medium">
                       {profile?.date_of_birth 
-                        ? new Date(profile.date_of_birth).toLocaleDateString() 
-                        : "Not set"}
+                        ? new Date(profile.date_of_birth).toLocaleDateString("th-TH") 
+                        : "ยังไม่ได้ระบุ"}
                     </p>
                   </div>
                 </div>
@@ -190,7 +190,7 @@ export function ProfileView() {
         {/* Account Information (Read-only) */}
         <Card>
           <CardHeader>
-            <CardTitle>Account Information</CardTitle>
+            <CardTitle>ข้อมูลบัญชี</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -203,25 +203,25 @@ export function ProfileView() {
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{user?.email || "N/A"}</p>
+                    <p className="text-sm text-muted-foreground">อีเมล</p>
+                    <p className="font-medium">{user?.email || "ไม่ระบุ"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <IdCard className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Employee ID</p>
-                    <p className="font-medium">{profile?.employee_id || "N/A"}</p>
+                    <p className="text-sm text-muted-foreground">รหัสพนักงาน</p>
+                    <p className="font-medium">{profile?.employee_id || "ไม่ระบุ"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Calendar className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Account Created</p>
+                    <p className="text-sm text-muted-foreground">วันที่สร้างบัญชี</p>
                     <p className="font-medium">
                       {profile?.created_at 
-                        ? new Date(profile.created_at).toLocaleDateString() 
-                        : "N/A"}
+                        ? new Date(profile.created_at).toLocaleDateString("th-TH") 
+                        : "ไม่ระบุ"}
                     </p>
                   </div>
                 </div>
@@ -235,11 +235,11 @@ export function ProfileView() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5" />
-              Bank Account Information
+              ข้อมูลบัญชีธนาคาร
             </CardTitle>
             {!isEditingBank && (
               <Button variant="outline" size="sm" onClick={() => setIsEditingBank(true)}>
-                Edit
+                แก้ไข
               </Button>
             )}
           </CardHeader>
@@ -253,28 +253,28 @@ export function ProfileView() {
               <form onSubmit={handleBankSubmit} className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="bankName">Bank Name</Label>
+                    <Label htmlFor="bankName">ชื่อธนาคาร</Label>
                     <Input
                       id="bankName"
                       value={bankName}
                       onChange={(e) => setBankName(e.target.value)}
-                      placeholder="e.g., Bangkok Bank, Kasikorn Bank"
+                      placeholder="เช่น ธนาคารกรุงเทพ, ธนาคารกสิกรไทย"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="bankAccountNumber">Account Number</Label>
+                    <Label htmlFor="bankAccountNumber">เลขที่บัญชี</Label>
                     <Input
                       id="bankAccountNumber"
                       value={bankAccountNumber}
                       onChange={(e) => setBankAccountNumber(e.target.value)}
-                      placeholder="Enter your bank account number"
+                      placeholder="กรอกเลขที่บัญชีธนาคาร"
                     />
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <Button type="submit" disabled={updateBankInfo.isPending}>
                     <Save className="h-4 w-4 mr-2" />
-                    {updateBankInfo.isPending ? "Saving..." : "Save Bank Info"}
+                    {updateBankInfo.isPending ? "กำลังบันทึก..." : "บันทึกข้อมูลธนาคาร"}
                   </Button>
                   <Button 
                     type="button" 
@@ -285,7 +285,7 @@ export function ProfileView() {
                       setBankAccountNumber(profile?.bank_account_number || "");
                     }}
                   >
-                    Cancel
+                    ยกเลิก
                   </Button>
                 </div>
               </form>
@@ -294,21 +294,21 @@ export function ProfileView() {
                 <div className="flex items-center gap-3">
                   <Building2 className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Bank Name</p>
-                    <p className="font-medium">{profile?.bank_name || "Not set"}</p>
+                    <p className="text-sm text-muted-foreground">ชื่อธนาคาร</p>
+                    <p className="font-medium">{profile?.bank_name || "ยังไม่ได้ระบุ"}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <IdCard className="h-5 w-5 text-muted-foreground" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Account Number</p>
-                    <p className="font-medium font-mono">{profile?.bank_account_number || "Not set"}</p>
+                    <p className="text-sm text-muted-foreground">เลขที่บัญชี</p>
+                    <p className="font-medium font-mono">{profile?.bank_account_number || "ยังไม่ได้ระบุ"}</p>
                   </div>
                 </div>
               </div>
             )}
             <p className="text-xs text-muted-foreground mt-4">
-              Your bank account information is used for salary payment processing.
+              ข้อมูลบัญชีธนาคารใช้สำหรับการโอนเงินเดือน
             </p>
           </CardContent>
         </Card>

@@ -32,6 +32,21 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 
+const statusLabels: Record<string, string> = {
+  approved: "อนุมัติแล้ว",
+  pending: "รอดำเนินการ",
+  rejected: "ไม่อนุมัติ",
+};
+
+const leaveTypeLabels: Record<string, string> = {
+  annual: "ลาพักร้อน",
+  sick: "ลาป่วย",
+  personal: "ลากิจ",
+  maternity: "ลาคลอด",
+  paternity: "ลาดูแลภรรยาคลอด",
+  unpaid: "ลาไม่รับเงินเดือน",
+};
+
 export function LeaveOTRequestView() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -97,10 +112,10 @@ export function LeaveOTRequestView() {
       setLeaveStartDate("");
       setLeaveEndDate("");
       setLeaveReason("");
-      toast.success("Leave request submitted successfully!");
+      toast.success("ส่งคำขอลางานเรียบร้อยแล้ว!");
     },
     onError: (error) => {
-      toast.error("Failed to submit leave request: " + error.message);
+      toast.error("ส่งคำขอลางานไม่สำเร็จ: " + error.message);
     },
   });
 
@@ -122,10 +137,10 @@ export function LeaveOTRequestView() {
       setOtDate("");
       setOtHours("");
       setOtReason("");
-      toast.success("OT request submitted successfully!");
+      toast.success("ส่งคำขอ OT เรียบร้อยแล้ว!");
     },
     onError: (error) => {
-      toast.error("Failed to submit OT request: " + error.message);
+      toast.error("ส่งคำขอ OT ไม่สำเร็จ: " + error.message);
     },
   });
 
@@ -141,7 +156,7 @@ export function LeaveOTRequestView() {
   const handleLeaveSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!leaveType || !leaveStartDate || !leaveEndDate) {
-      toast.error("Please fill in all required fields");
+      toast.error("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
       return;
     }
     leaveSubmit.mutate();
@@ -150,7 +165,7 @@ export function LeaveOTRequestView() {
   const handleOtSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!otDate || !otHours) {
-      toast.error("Please fill in all required fields");
+      toast.error("กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน");
       return;
     }
     otSubmit.mutate();
@@ -160,13 +175,13 @@ export function LeaveOTRequestView() {
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <Calendar className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Leave & OT Request</h1>
+        <h1 className="text-2xl font-bold text-foreground">ขอลา/ขอ OT</h1>
       </div>
 
       <Tabs defaultValue="leave" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="leave">Leave Request</TabsTrigger>
-          <TabsTrigger value="ot">Overtime Request</TabsTrigger>
+          <TabsTrigger value="leave">คำขอลางาน</TabsTrigger>
+          <TabsTrigger value="ot">คำขอทำงานล่วงเวลา</TabsTrigger>
         </TabsList>
 
         <TabsContent value="leave" className="space-y-6">
@@ -175,30 +190,30 @@ export function LeaveOTRequestView() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Plus className="h-5 w-5" />
-                New Leave Request
+                สร้างคำขอลางานใหม่
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLeaveSubmit} className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="leaveType">Leave Type *</Label>
+                    <Label htmlFor="leaveType">ประเภทการลา *</Label>
                     <Select value={leaveType} onValueChange={setLeaveType}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select leave type" />
+                        <SelectValue placeholder="เลือกประเภทการลา" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="annual">Annual Leave</SelectItem>
-                        <SelectItem value="sick">Sick Leave</SelectItem>
-                        <SelectItem value="personal">Personal Leave</SelectItem>
-                        <SelectItem value="maternity">Maternity Leave</SelectItem>
-                        <SelectItem value="paternity">Paternity Leave</SelectItem>
-                        <SelectItem value="unpaid">Unpaid Leave</SelectItem>
+                        <SelectItem value="annual">ลาพักร้อน</SelectItem>
+                        <SelectItem value="sick">ลาป่วย</SelectItem>
+                        <SelectItem value="personal">ลากิจ</SelectItem>
+                        <SelectItem value="maternity">ลาคลอด</SelectItem>
+                        <SelectItem value="paternity">ลาดูแลภรรยาคลอด</SelectItem>
+                        <SelectItem value="unpaid">ลาไม่รับเงินเดือน</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="startDate">Start Date *</Label>
+                    <Label htmlFor="startDate">วันเริ่มต้น *</Label>
                     <Input
                       id="startDate"
                       type="date"
@@ -207,7 +222,7 @@ export function LeaveOTRequestView() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="endDate">End Date *</Label>
+                    <Label htmlFor="endDate">วันสิ้นสุด *</Label>
                     <Input
                       id="endDate"
                       type="date"
@@ -217,16 +232,16 @@ export function LeaveOTRequestView() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="reason">Reason</Label>
+                  <Label htmlFor="reason">เหตุผล</Label>
                   <Textarea
                     id="reason"
-                    placeholder="Provide additional details..."
+                    placeholder="ระบุรายละเอียดเพิ่มเติม..."
                     value={leaveReason}
                     onChange={(e) => setLeaveReason(e.target.value)}
                   />
                 </div>
                 <Button type="submit" disabled={leaveSubmit.isPending}>
-                  {leaveSubmit.isPending ? "Submitting..." : "Submit Leave Request"}
+                  {leaveSubmit.isPending ? "กำลังส่ง..." : "ส่งคำขอลางาน"}
                 </Button>
               </form>
             </CardContent>
@@ -235,7 +250,7 @@ export function LeaveOTRequestView() {
           {/* Leave History */}
           <Card>
             <CardHeader>
-              <CardTitle>Leave Request History</CardTitle>
+              <CardTitle>ประวัติคำขอลางาน</CardTitle>
             </CardHeader>
             <CardContent>
               {leaveLoading ? (
@@ -248,33 +263,33 @@ export function LeaveOTRequestView() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Start Date</TableHead>
-                      <TableHead>End Date</TableHead>
-                      <TableHead>Reason</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Submitted</TableHead>
+                      <TableHead>ประเภท</TableHead>
+                      <TableHead>วันเริ่มต้น</TableHead>
+                      <TableHead>วันสิ้นสุด</TableHead>
+                      <TableHead>เหตุผล</TableHead>
+                      <TableHead>สถานะ</TableHead>
+                      <TableHead>วันที่ส่ง</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {leaveRequests.map((request) => (
                       <TableRow key={request.id}>
-                        <TableCell className="capitalize">{request.leave_type}</TableCell>
-                        <TableCell>{new Date(request.start_date).toLocaleDateString()}</TableCell>
-                        <TableCell>{new Date(request.end_date).toLocaleDateString()}</TableCell>
+                        <TableCell>{leaveTypeLabels[request.leave_type] || request.leave_type}</TableCell>
+                        <TableCell>{new Date(request.start_date).toLocaleDateString("th-TH")}</TableCell>
+                        <TableCell>{new Date(request.end_date).toLocaleDateString("th-TH")}</TableCell>
                         <TableCell className="max-w-xs truncate">{request.reason || "-"}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(request.status)}`}>
-                            {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                            {statusLabels[request.status] || request.status}
                           </span>
                         </TableCell>
-                        <TableCell>{new Date(request.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(request.created_at).toLocaleDateString("th-TH")}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-muted-foreground text-center py-8">No leave requests yet.</p>
+                <p className="text-muted-foreground text-center py-8">ยังไม่มีคำขอลางาน</p>
               )}
             </CardContent>
           </Card>
@@ -286,14 +301,14 @@ export function LeaveOTRequestView() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                New Overtime Request
+                สร้างคำขอทำงานล่วงเวลาใหม่
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleOtSubmit} className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="otDate">Date *</Label>
+                    <Label htmlFor="otDate">วันที่ *</Label>
                     <Input
                       id="otDate"
                       type="date"
@@ -302,30 +317,30 @@ export function LeaveOTRequestView() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="otHours">Hours *</Label>
+                    <Label htmlFor="otHours">จำนวนชั่วโมง *</Label>
                     <Input
                       id="otHours"
                       type="number"
                       step="0.5"
                       min="0.5"
                       max="12"
-                      placeholder="e.g., 2.5"
+                      placeholder="เช่น 2.5"
                       value={otHours}
                       onChange={(e) => setOtHours(e.target.value)}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="otReason">Reason</Label>
+                  <Label htmlFor="otReason">เหตุผล</Label>
                   <Textarea
                     id="otReason"
-                    placeholder="Describe the work done during overtime..."
+                    placeholder="อธิบายงานที่ทำระหว่างทำงานล่วงเวลา..."
                     value={otReason}
                     onChange={(e) => setOtReason(e.target.value)}
                   />
                 </div>
                 <Button type="submit" disabled={otSubmit.isPending}>
-                  {otSubmit.isPending ? "Submitting..." : "Submit OT Request"}
+                  {otSubmit.isPending ? "กำลังส่ง..." : "ส่งคำขอ OT"}
                 </Button>
               </form>
             </CardContent>
@@ -334,7 +349,7 @@ export function LeaveOTRequestView() {
           {/* OT History */}
           <Card>
             <CardHeader>
-              <CardTitle>Overtime Request History</CardTitle>
+              <CardTitle>ประวัติคำขอทำงานล่วงเวลา</CardTitle>
             </CardHeader>
             <CardContent>
               {otLoading ? (
@@ -347,31 +362,31 @@ export function LeaveOTRequestView() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Hours</TableHead>
-                      <TableHead>Reason</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Submitted</TableHead>
+                      <TableHead>วันที่</TableHead>
+                      <TableHead>ชั่วโมง</TableHead>
+                      <TableHead>เหตุผล</TableHead>
+                      <TableHead>สถานะ</TableHead>
+                      <TableHead>วันที่ส่ง</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {otRequests.map((request) => (
                       <TableRow key={request.id}>
-                        <TableCell>{new Date(request.request_date).toLocaleDateString()}</TableCell>
-                        <TableCell>{request.hours} hrs</TableCell>
+                        <TableCell>{new Date(request.request_date).toLocaleDateString("th-TH")}</TableCell>
+                        <TableCell>{request.hours} ชม.</TableCell>
                         <TableCell className="max-w-xs truncate">{request.reason || "-"}</TableCell>
                         <TableCell>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(request.status)}`}>
-                            {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                            {statusLabels[request.status] || request.status}
                           </span>
                         </TableCell>
-                        <TableCell>{new Date(request.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(request.created_at).toLocaleDateString("th-TH")}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               ) : (
-                <p className="text-muted-foreground text-center py-8">No overtime requests yet.</p>
+                <p className="text-muted-foreground text-center py-8">ยังไม่มีคำขอทำงานล่วงเวลา</p>
               )}
             </CardContent>
           </Card>

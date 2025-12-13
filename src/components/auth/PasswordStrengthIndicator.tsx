@@ -8,12 +8,20 @@ interface PasswordStrengthIndicatorProps {
 export function PasswordStrengthIndicator({ strength }: PasswordStrengthIndicatorProps) {
   const { score, label, color, requirements } = strength;
 
+  const labelTh = {
+    "Very Weak": "อ่อนมาก",
+    "Weak": "อ่อน",
+    "Fair": "พอใช้",
+    "Strong": "แข็งแกร่ง",
+    "Very Strong": "แข็งแกร่งมาก",
+  }[label] || label;
+
   const requirementsList = [
-    { key: "minLength", label: "At least 8 characters", met: requirements.minLength },
-    { key: "hasUppercase", label: "Uppercase letter (A-Z)", met: requirements.hasUppercase },
-    { key: "hasLowercase", label: "Lowercase letter (a-z)", met: requirements.hasLowercase },
-    { key: "hasNumber", label: "Number (0-9)", met: requirements.hasNumber },
-    { key: "hasSpecial", label: "Special character (!@#$%...)", met: requirements.hasSpecial },
+    { key: "minLength", label: "อย่างน้อย 8 ตัวอักษร", met: requirements.minLength },
+    { key: "hasUppercase", label: "ตัวพิมพ์ใหญ่ (A-Z)", met: requirements.hasUppercase },
+    { key: "hasLowercase", label: "ตัวพิมพ์เล็ก (a-z)", met: requirements.hasLowercase },
+    { key: "hasNumber", label: "ตัวเลข (0-9)", met: requirements.hasNumber },
+    { key: "hasSpecial", label: "อักขระพิเศษ (!@#$%...)", met: requirements.hasSpecial },
   ];
 
   return (
@@ -21,8 +29,8 @@ export function PasswordStrengthIndicator({ strength }: PasswordStrengthIndicato
       {/* Strength bar */}
       <div className="space-y-1">
         <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">Password strength</span>
-          <span style={{ color }}>{label}</span>
+          <span className="text-muted-foreground">ความแข็งแกร่งรหัสผ่าน</span>
+          <span style={{ color }}>{labelTh}</span>
         </div>
         <div className="h-2 bg-muted rounded-full overflow-hidden">
           <div

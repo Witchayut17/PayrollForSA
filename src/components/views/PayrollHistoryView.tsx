@@ -39,6 +39,12 @@ interface Payslip {
   paid_at: string | null;
 }
 
+const statusLabels: Record<string, string> = {
+  paid: "จ่ายแล้ว",
+  pending: "รอดำเนินการ",
+  processing: "กำลังดำเนินการ",
+};
+
 export function PayrollHistoryView() {
   const { user } = useAuth();
   const [selectedPayslip, setSelectedPayslip] = useState<Payslip | null>(null);
@@ -60,33 +66,33 @@ export function PayrollHistoryView() {
 
   const handleDownload = (payslip: Payslip) => {
     const content = `
-PAYSLIP
-=======
-Pay Period: ${new Date(payslip.pay_period_start).toLocaleDateString()} - ${new Date(payslip.pay_period_end).toLocaleDateString()}
-Generated: ${new Date(payslip.generated_at).toLocaleDateString()}
+สลิปเงินเดือน
+=============
+งวดการจ่าย: ${new Date(payslip.pay_period_start).toLocaleDateString("th-TH")} - ${new Date(payslip.pay_period_end).toLocaleDateString("th-TH")}
+วันที่สร้าง: ${new Date(payslip.generated_at).toLocaleDateString("th-TH")}
 
-EARNINGS
---------
-Base Salary: ฿${Number(payslip.base_salary).toLocaleString()}
-Allowances: ฿${Number(payslip.allowances).toLocaleString()}
-Overtime Pay: ฿${Number(payslip.overtime_pay).toLocaleString()}
-Gross Pay: ฿${Number(payslip.gross_pay).toLocaleString()}
+รายได้
+------
+เงินเดือนพื้นฐาน: ฿${Number(payslip.base_salary).toLocaleString()}
+เงินช่วยเหลือ: ฿${Number(payslip.allowances).toLocaleString()}
+ค่าล่วงเวลา: ฿${Number(payslip.overtime_pay).toLocaleString()}
+รายได้รวม: ฿${Number(payslip.gross_pay).toLocaleString()}
 
-DEDUCTIONS
-----------
-Tax: ฿${Number(payslip.tax_deduction).toLocaleString()}
-Social Security: ฿${Number(payslip.social_security).toLocaleString()}
-Other Deductions: ฿${Number(payslip.other_deductions).toLocaleString()}
+หักเงิน
+-------
+ภาษี: ฿${Number(payslip.tax_deduction).toLocaleString()}
+ประกันสังคม: ฿${Number(payslip.social_security).toLocaleString()}
+หักอื่นๆ: ฿${Number(payslip.other_deductions).toLocaleString()}
 
-NET PAY: ฿${Number(payslip.net_pay).toLocaleString()}
-Status: ${payslip.status.toUpperCase()}
+เงินสุทธิ: ฿${Number(payslip.net_pay).toLocaleString()}
+สถานะ: ${statusLabels[payslip.status] || payslip.status}
     `;
 
-    const blob = new Blob([content], { type: "text/plain" });
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `payslip-${payslip.pay_period_start}-${payslip.pay_period_end}.txt`;
+    a.download = `สลิปเงินเดือน-${payslip.pay_period_start}-${payslip.pay_period_end}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -106,12 +112,12 @@ Status: ${payslip.status.toUpperCase()}
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <History className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Payroll History</h1>
+        <h1 className="text-2xl font-bold text-foreground">ประวัติการจ่ายเงิน</h1>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Payment History</CardTitle>
+          <CardTitle>ประวัติการรับเงินเดือน</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -124,19 +130,19 @@ Status: ${payslip.status.toUpperCase()}
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Pay Period</TableHead>
-                  <TableHead className="text-right">Gross Pay</TableHead>
-                  <TableHead className="text-right">Deductions</TableHead>
-                  <TableHead className="text-right">Net Pay</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>งวดการจ่าย</TableHead>
+                  <TableHead className="text-right">รายได้รวม</TableHead>
+                  <TableHead className="text-right">หักเงิน</TableHead>
+                  <TableHead className="text-right">เงินสุทธิ</TableHead>
+                  <TableHead>สถานะ</TableHead>
+                  <TableHead className="text-right">การดำเนินการ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {payslips.map((payslip) => (
                   <TableRow key={payslip.id}>
                     <TableCell>
-                      {new Date(payslip.pay_period_start).toLocaleDateString()} - {new Date(payslip.pay_period_end).toLocaleDateString()}
+                      {new Date(payslip.pay_period_start).toLocaleDateString("th-TH")} - {new Date(payslip.pay_period_end).toLocaleDateString("th-TH")}
                     </TableCell>
                     <TableCell className="text-right">
                       ฿{Number(payslip.gross_pay).toLocaleString()}
@@ -149,7 +155,7 @@ Status: ${payslip.status.toUpperCase()}
                     </TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(payslip.status)}`}>
-                        {payslip.status.charAt(0).toUpperCase() + payslip.status.slice(1)}
+                        {statusLabels[payslip.status] || payslip.status}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
@@ -166,42 +172,42 @@ Status: ${payslip.status.toUpperCase()}
                           </DialogTrigger>
                           <DialogContent className="max-w-md">
                             <DialogHeader>
-                              <DialogTitle>Payslip Details</DialogTitle>
+                              <DialogTitle>รายละเอียดสลิปเงินเดือน</DialogTitle>
                             </DialogHeader>
                             {selectedPayslip && (
                               <div className="space-y-4">
                                 <div className="border-b pb-2">
-                                  <p className="text-sm text-muted-foreground">Pay Period</p>
+                                  <p className="text-sm text-muted-foreground">งวดการจ่าย</p>
                                   <p className="font-semibold">
-                                    {new Date(selectedPayslip.pay_period_start).toLocaleDateString()} - {new Date(selectedPayslip.pay_period_end).toLocaleDateString()}
+                                    {new Date(selectedPayslip.pay_period_start).toLocaleDateString("th-TH")} - {new Date(selectedPayslip.pay_period_end).toLocaleDateString("th-TH")}
                                   </p>
                                 </div>
                                 <div className="space-y-2">
-                                  <h4 className="font-semibold text-green-700">Earnings</h4>
+                                  <h4 className="font-semibold text-green-700">รายได้</h4>
                                   <div className="grid grid-cols-2 gap-2 text-sm">
-                                    <span>Base Salary:</span>
+                                    <span>เงินเดือนพื้นฐาน:</span>
                                     <span className="text-right">฿{Number(selectedPayslip.base_salary).toLocaleString()}</span>
-                                    <span>Allowances:</span>
+                                    <span>เงินช่วยเหลือ:</span>
                                     <span className="text-right">฿{Number(selectedPayslip.allowances).toLocaleString()}</span>
-                                    <span>Overtime:</span>
+                                    <span>ค่าล่วงเวลา:</span>
                                     <span className="text-right">฿{Number(selectedPayslip.overtime_pay).toLocaleString()}</span>
-                                    <span className="font-semibold">Gross Pay:</span>
+                                    <span className="font-semibold">รายได้รวม:</span>
                                     <span className="text-right font-semibold">฿{Number(selectedPayslip.gross_pay).toLocaleString()}</span>
                                   </div>
                                 </div>
                                 <div className="space-y-2">
-                                  <h4 className="font-semibold text-red-700">Deductions</h4>
+                                  <h4 className="font-semibold text-red-700">หักเงิน</h4>
                                   <div className="grid grid-cols-2 gap-2 text-sm">
-                                    <span>Tax:</span>
+                                    <span>ภาษี:</span>
                                     <span className="text-right">฿{Number(selectedPayslip.tax_deduction).toLocaleString()}</span>
-                                    <span>Social Security:</span>
+                                    <span>ประกันสังคม:</span>
                                     <span className="text-right">฿{Number(selectedPayslip.social_security).toLocaleString()}</span>
-                                    <span>Other:</span>
+                                    <span>อื่นๆ:</span>
                                     <span className="text-right">฿{Number(selectedPayslip.other_deductions).toLocaleString()}</span>
                                   </div>
                                 </div>
                                 <div className="border-t pt-2 flex justify-between items-center">
-                                  <span className="font-bold text-lg">Net Pay:</span>
+                                  <span className="font-bold text-lg">เงินสุทธิ:</span>
                                   <span className="font-bold text-lg text-primary">฿{Number(selectedPayslip.net_pay).toLocaleString()}</span>
                                 </div>
                               </div>
@@ -222,7 +228,7 @@ Status: ${payslip.status.toUpperCase()}
               </TableBody>
             </Table>
           ) : (
-            <p className="text-muted-foreground text-center py-8">No payroll history available yet.</p>
+            <p className="text-muted-foreground text-center py-8">ยังไม่มีประวัติการจ่ายเงิน</p>
           )}
         </CardContent>
       </Card>

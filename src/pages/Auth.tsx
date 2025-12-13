@@ -52,21 +52,21 @@ export default function Auth() {
       
       if (error) {
         toast({
-          title: "Login Failed",
+          title: "เข้าสู่ระบบไม่สำเร็จ",
           description: error.message,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Welcome back!",
-          description: "You have successfully logged in.",
+          title: "ยินดีต้อนรับกลับ!",
+          description: "คุณเข้าสู่ระบบสำเร็จแล้ว",
         });
         navigate("/");
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: "เกิดข้อผิดพลาด",
+        description: "เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง",
         variant: "destructive",
       });
     } finally {
@@ -81,8 +81,8 @@ export default function Auth() {
     // Validate password strength
     if (passwordStrength.score < 3) {
       toast({
-        title: "Weak Password",
-        description: "Please create a stronger password that meets the requirements.",
+        title: "รหัสผ่านไม่ปลอดภัย",
+        description: "กรุณาสร้างรหัสผ่านที่แข็งแกร่งกว่านี้ตามเงื่อนไขที่กำหนด",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -92,8 +92,8 @@ export default function Auth() {
     // Validate password match
     if (registerPassword !== confirmPassword) {
       toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match. Please try again.",
+        title: "รหัสผ่านไม่ตรงกัน",
+        description: "กรุณากรอกรหัสผ่านให้ตรงกันทั้งสองช่อง",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -103,8 +103,8 @@ export default function Auth() {
     // Validate date of birth
     if (!dateOfBirth) {
       toast({
-        title: "Date of Birth Required",
-        description: "Please enter your date of birth.",
+        title: "กรุณากรอกวันเกิด",
+        description: "กรุณากรอกวันเดือนปีเกิดของคุณ",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -120,27 +120,27 @@ export default function Auth() {
       if (error) {
         if (error.message.includes("already registered")) {
           toast({
-            title: "Account Exists",
-            description: "This email is already registered. Please login instead.",
+            title: "บัญชีนี้มีอยู่แล้ว",
+            description: "อีเมลนี้ได้ลงทะเบียนไว้แล้ว กรุณาเข้าสู่ระบบแทน",
             variant: "destructive",
           });
         } else {
           toast({
-            title: "Registration Failed",
+            title: "ลงทะเบียนไม่สำเร็จ",
             description: error.message,
             variant: "destructive",
           });
         }
       } else {
         toast({
-          title: "Registration Successful!",
-          description: "Please check your email to confirm your account.",
+          title: "ลงทะเบียนสำเร็จ!",
+          description: "กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชีของคุณ",
         });
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
+        title: "เกิดข้อผิดพลาด",
+        description: "เกิดข้อผิดพลาดที่ไม่คาดคิด กรุณาลองใหม่อีกครั้ง",
         variant: "destructive",
       });
     } finally {
@@ -165,25 +165,25 @@ export default function Auth() {
               <Building2 className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            Payroll Management
+          <CardTitle className="text-xl font-bold tracking-tight">
+            บริษัท เปาปอนหยกฝ้ายองุ่น จำกัด
           </CardTitle>
           <CardDescription>
-            Sign in to access your payroll dashboard
+            เข้าสู่ระบบเพื่อจัดการเงินเดือน
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Login</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
+              <TabsTrigger value="login">เข้าสู่ระบบ</TabsTrigger>
+              <TabsTrigger value="register">ลงทะเบียน</TabsTrigger>
             </TabsList>
 
             {/* Login Tab */}
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email">อีเมล</Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -195,7 +195,7 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
+                  <Label htmlFor="login-password">รหัสผ่าน</Label>
                   <div className="relative">
                     <Input
                       id="login-password"
@@ -225,10 +225,10 @@ export default function Auth() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing in...
+                      กำลังเข้าสู่ระบบ...
                     </>
                   ) : (
-                    "Sign In"
+                    "เข้าสู่ระบบ"
                   )}
                 </Button>
               </form>
@@ -238,11 +238,11 @@ export default function Auth() {
             <TabsContent value="register">
               <form onSubmit={handleRegister} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="full-name">Full Name</Label>
+                  <Label htmlFor="full-name">ชื่อ-นามสกุล</Label>
                   <Input
                     id="full-name"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="ชื่อ นามสกุล"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
@@ -250,7 +250,7 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dob">Date of Birth</Label>
+                  <Label htmlFor="dob">วันเกิด</Label>
                   <Input
                     id="dob"
                     type="date"
@@ -261,7 +261,7 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="register-email">Email</Label>
+                  <Label htmlFor="register-email">อีเมล</Label>
                   <Input
                     id="register-email"
                     type="email"
@@ -273,7 +273,7 @@ export default function Auth() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="register-password">Password</Label>
+                  <Label htmlFor="register-password">รหัสผ่าน</Label>
                   <div className="relative">
                     <Input
                       id="register-password"
@@ -303,7 +303,7 @@ export default function Auth() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Label htmlFor="confirm-password">ยืนยันรหัสผ่าน</Label>
                   <div className="relative">
                     <Input
                       id="confirm-password"
@@ -329,10 +329,10 @@ export default function Auth() {
                     </Button>
                   </div>
                   {confirmPassword && registerPassword !== confirmPassword && (
-                    <p className="text-xs text-destructive">Passwords do not match</p>
+                    <p className="text-xs text-destructive">รหัสผ่านไม่ตรงกัน</p>
                   )}
                   {confirmPassword && registerPassword === confirmPassword && (
-                    <p className="text-xs text-success">Passwords match</p>
+                    <p className="text-xs text-success">รหัสผ่านตรงกัน</p>
                   )}
                 </div>
                 <Button 
@@ -343,10 +343,10 @@ export default function Auth() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating account...
+                      กำลังสร้างบัญชี...
                     </>
                   ) : (
-                    "Create Account"
+                    "สร้างบัญชี"
                   )}
                 </Button>
               </form>

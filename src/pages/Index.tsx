@@ -29,25 +29,25 @@ import { TaxReportView } from "@/components/views/TaxReportView";
 
 const viewTitles: Record<string, { title: string; subtitle: string }> = {
   // Employee views
-  "payroll-review": { title: "Payroll Review", subtitle: "Review your payroll information." },
-  "payroll-history": { title: "Payroll History", subtitle: "View your payment history." },
-  "leave-ot-request": { title: "Leave & OT Request", subtitle: "Submit leave and overtime requests." },
-  "payslips": { title: "Payslips", subtitle: "View and download your payslips." },
-  "profile": { title: "My Profile", subtitle: "View and update your profile information." },
+  "payroll-review": { title: "ตรวจสอบเงินเดือน", subtitle: "ตรวจสอบข้อมูลเงินเดือนของคุณ" },
+  "payroll-history": { title: "ประวัติการจ่ายเงิน", subtitle: "ดูประวัติการรับเงินเดือน" },
+  "leave-ot-request": { title: "ขอลา/ขอ OT", subtitle: "ยื่นคำขอลางานและทำงานล่วงเวลา" },
+  "payslips": { title: "สลิปเงินเดือน", subtitle: "ดูและดาวน์โหลดสลิปเงินเดือน" },
+  "profile": { title: "โปรไฟล์ของฉัน", subtitle: "ดูและแก้ไขข้อมูลส่วนตัว" },
   
   // HR views
-  "attendance-form": { title: "Attendance Form", subtitle: "Record employee attendance." },
-  "employee-list": { title: "Employee List", subtitle: "View all employees." },
-  "employee-management": { title: "Employee Management", subtitle: "Manage employee information." },
-  "salary-management": { title: "Salary Management", subtitle: "Set and manage employee salaries." },
-  "hr-report": { title: "HR Reports", subtitle: "View HR analytics and reports." },
-  "leave-ot-approval": { title: "Leave & OT Approval", subtitle: "Approve leave and OT requests." },
+  "attendance-form": { title: "บันทึกเวลาทำงาน", subtitle: "บันทึกการมาทำงานของพนักงาน" },
+  "employee-list": { title: "รายชื่อพนักงาน", subtitle: "ดูรายชื่อพนักงานทั้งหมด" },
+  "employee-management": { title: "จัดการพนักงาน", subtitle: "จัดการข้อมูลพนักงาน" },
+  "salary-management": { title: "จัดการเงินเดือน", subtitle: "กำหนดและจัดการเงินเดือนพนักงาน" },
+  "hr-report": { title: "รายงาน HR", subtitle: "ดูรายงานและสถิติ HR" },
+  "leave-ot-approval": { title: "อนุมัติลา/OT", subtitle: "อนุมัติคำขอลางานและ OT" },
   
   // Accountant views
-  "finance-report": { title: "Finance Report", subtitle: "View financial reports." },
-  "payroll-accounting": { title: "Payroll Accounting", subtitle: "Manage payroll accounting." },
-  "salary-calculator": { title: "Salary Calculator", subtitle: "Calculate employee salaries." },
-  "tax-report": { title: "Tax Report", subtitle: "Generate tax reports." },
+  "finance-report": { title: "รายงานการเงิน", subtitle: "ดูรายงานการเงิน" },
+  "payroll-accounting": { title: "บัญชีเงินเดือน", subtitle: "จัดการบัญชีเงินเดือน" },
+  "salary-calculator": { title: "คำนวณเงินเดือน", subtitle: "คำนวณเงินเดือนพนักงาน" },
+  "tax-report": { title: "รายงานภาษี", subtitle: "สร้างรายงานภาษี" },
 };
 
 function getDefaultView(role: string | null) {

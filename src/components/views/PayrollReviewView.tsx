@@ -67,16 +67,16 @@ export function PayrollReviewView() {
         return {
           id: profile.id,
           employeeId: profile.employee_id,
-          name: profile.full_name || "N/A",
+          name: profile.full_name || "ไม่ระบุ",
           baseSalary: salary ? Number(salary.base_salary) : 0,
           allowances: totalAllowances,
           grossPay: payslip ? Number(payslip.gross_pay) : 0,
           deductions: totalDeductions,
           netPay: payslip ? Number(payslip.net_pay) : 0,
-          status: payslip?.status || "No payslip",
+          status: payslip?.status || "ไม่มีสลิป",
           payPeriod: payslip
-            ? `${new Date(payslip.pay_period_start).toLocaleDateString()} - ${new Date(payslip.pay_period_end).toLocaleDateString()}`
-            : "N/A",
+            ? `${new Date(payslip.pay_period_start).toLocaleDateString("th-TH")} - ${new Date(payslip.pay_period_end).toLocaleDateString("th-TH")}`
+            : "ไม่ระบุ",
         };
       }) || [];
     },
@@ -130,20 +130,26 @@ export function PayrollReviewView() {
     { totalBase: 0, totalAllowances: 0, totalGross: 0, totalDeductions: 0, totalNet: 0 }
   ) || { totalBase: 0, totalAllowances: 0, totalGross: 0, totalDeductions: 0, totalNet: 0 };
 
+  const statusLabels: Record<string, string> = {
+    paid: "จ่ายแล้ว",
+    pending: "รอดำเนินการ",
+    processing: "กำลังดำเนินการ",
+  };
+
   // Accountant View - All Employees
   if (isAccountant) {
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center gap-2 mb-6">
           <FileText className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Payroll Review - All Employees</h1>
+          <h1 className="text-2xl font-bold text-foreground">ตรวจสอบเงินเดือน - พนักงานทั้งหมด</h1>
         </div>
 
         {/* Summary Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Employees</CardTitle>
+              <CardTitle className="text-sm font-medium">จำนวนพนักงาน</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -152,13 +158,13 @@ export function PayrollReviewView() {
               ) : (
                 <div className="text-2xl font-bold">{allPayrollData?.length || 0}</div>
               )}
-              <p className="text-xs text-muted-foreground">Total employees</p>
+              <p className="text-xs text-muted-foreground">พนักงานทั้งหมด</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Base</CardTitle>
+              <CardTitle className="text-sm font-medium">เงินเดือนพื้นฐานรวม</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -167,13 +173,13 @@ export function PayrollReviewView() {
               ) : (
                 <div className="text-2xl font-bold">฿{totals.totalBase.toLocaleString()}</div>
               )}
-              <p className="text-xs text-muted-foreground">Monthly base salaries</p>
+              <p className="text-xs text-muted-foreground">เงินเดือนพื้นฐานรายเดือน</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Allowances</CardTitle>
+              <CardTitle className="text-sm font-medium">เงินช่วยเหลือรวม</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
@@ -182,13 +188,13 @@ export function PayrollReviewView() {
               ) : (
                 <div className="text-2xl font-bold text-green-600">+฿{totals.totalAllowances.toLocaleString()}</div>
               )}
-              <p className="text-xs text-muted-foreground">All allowances</p>
+              <p className="text-xs text-muted-foreground">เงินช่วยเหลือทั้งหมด</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Deductions</CardTitle>
+              <CardTitle className="text-sm font-medium">การหักเงินรวม</CardTitle>
               <TrendingDown className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
@@ -197,13 +203,13 @@ export function PayrollReviewView() {
               ) : (
                 <div className="text-2xl font-bold text-red-600">-฿{totals.totalDeductions.toLocaleString()}</div>
               )}
-              <p className="text-xs text-muted-foreground">Tax & Social Security</p>
+              <p className="text-xs text-muted-foreground">ภาษี & ประกันสังคม</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Net Pay</CardTitle>
+              <CardTitle className="text-sm font-medium">เงินสุทธิรวม</CardTitle>
               <DollarSign className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
@@ -212,7 +218,7 @@ export function PayrollReviewView() {
               ) : (
                 <div className="text-2xl font-bold text-primary">฿{totals.totalNet.toLocaleString()}</div>
               )}
-              <p className="text-xs text-muted-foreground">Total payroll cost</p>
+              <p className="text-xs text-muted-foreground">ต้นทุนเงินเดือนทั้งหมด</p>
             </CardContent>
           </Card>
         </div>
@@ -220,7 +226,7 @@ export function PayrollReviewView() {
         {/* Employee Payroll Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Employee Payroll Details</CardTitle>
+            <CardTitle>รายละเอียดเงินเดือนพนักงาน</CardTitle>
           </CardHeader>
           <CardContent>
             {allPayrollLoading ? (
@@ -234,20 +240,20 @@ export function PayrollReviewView() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Employee ID</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead className="text-right">Base Salary</TableHead>
-                      <TableHead className="text-right">Allowances</TableHead>
-                      <TableHead className="text-right">Gross Pay</TableHead>
-                      <TableHead className="text-right">Deductions</TableHead>
-                      <TableHead className="text-right">Net Pay</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>รหัสพนักงาน</TableHead>
+                      <TableHead>ชื่อ</TableHead>
+                      <TableHead className="text-right">เงินเดือนพื้นฐาน</TableHead>
+                      <TableHead className="text-right">เงินช่วยเหลือ</TableHead>
+                      <TableHead className="text-right">รายได้รวม</TableHead>
+                      <TableHead className="text-right">หักเงิน</TableHead>
+                      <TableHead className="text-right">เงินสุทธิ</TableHead>
+                      <TableHead>สถานะ</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {allPayrollData.map((emp) => (
                       <TableRow key={emp.id}>
-                        <TableCell className="font-mono">{emp.employeeId || "N/A"}</TableCell>
+                        <TableCell className="font-mono">{emp.employeeId || "ไม่ระบุ"}</TableCell>
                         <TableCell className="font-medium">{emp.name}</TableCell>
                         <TableCell className="text-right">฿{emp.baseSalary.toLocaleString()}</TableCell>
                         <TableCell className="text-right text-green-600">+฿{emp.allowances.toLocaleString()}</TableCell>
@@ -264,7 +270,7 @@ export function PayrollReviewView() {
                                 : "bg-muted text-muted-foreground"
                             }`}
                           >
-                            {emp.status.charAt(0).toUpperCase() + emp.status.slice(1)}
+                            {statusLabels[emp.status] || emp.status}
                           </span>
                         </TableCell>
                       </TableRow>
@@ -273,7 +279,7 @@ export function PayrollReviewView() {
                 </Table>
               </div>
             ) : (
-              <p className="text-muted-foreground text-center py-8">No payroll data available.</p>
+              <p className="text-muted-foreground text-center py-8">ไม่มีข้อมูลเงินเดือน</p>
             )}
           </CardContent>
         </Card>
@@ -296,14 +302,14 @@ export function PayrollReviewView() {
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <FileText className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Payroll Review</h1>
+        <h1 className="text-2xl font-bold text-foreground">ตรวจสอบเงินเดือน</h1>
       </div>
 
       {/* Summary Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Base Salary</CardTitle>
+            <CardTitle className="text-sm font-medium">เงินเดือนพื้นฐาน</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -314,13 +320,13 @@ export function PayrollReviewView() {
                 ฿{salary ? Number(salary.base_salary).toLocaleString() : "0"}
               </div>
             )}
-            <p className="text-xs text-muted-foreground">Monthly base pay</p>
+            <p className="text-xs text-muted-foreground">เงินเดือนพื้นฐานรายเดือน</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Allowances</CardTitle>
+            <CardTitle className="text-sm font-medium">เงินช่วยเหลือ</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -331,13 +337,13 @@ export function PayrollReviewView() {
                 +฿{totalAllowances.toLocaleString()}
               </div>
             )}
-            <p className="text-xs text-muted-foreground">Housing, Transport, Other</p>
+            <p className="text-xs text-muted-foreground">ค่าที่พัก, ค่าเดินทาง, อื่นๆ</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Deductions</CardTitle>
+            <CardTitle className="text-sm font-medium">หักเงิน</CardTitle>
             <TrendingDown className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
@@ -348,13 +354,13 @@ export function PayrollReviewView() {
                 -฿{totalDeductions.toLocaleString()}
               </div>
             )}
-            <p className="text-xs text-muted-foreground">Tax, Social Security</p>
+            <p className="text-xs text-muted-foreground">ภาษี, ประกันสังคม</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Net Pay</CardTitle>
+            <CardTitle className="text-sm font-medium">เงินสุทธิ</CardTitle>
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -365,7 +371,7 @@ export function PayrollReviewView() {
                 ฿{latestPayslip ? Number(latestPayslip.net_pay).toLocaleString() : "0"}
               </div>
             )}
-            <p className="text-xs text-muted-foreground">Last payslip amount</p>
+            <p className="text-xs text-muted-foreground">ยอดสลิปล่าสุด</p>
           </CardContent>
         </Card>
       </div>
@@ -373,7 +379,7 @@ export function PayrollReviewView() {
       {/* Salary Details */}
       <Card>
         <CardHeader>
-          <CardTitle>Current Salary Structure</CardTitle>
+          <CardTitle>โครงสร้างเงินเดือนปัจจุบัน</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -386,29 +392,29 @@ export function PayrollReviewView() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Base Salary</p>
+                  <p className="text-sm text-muted-foreground">เงินเดือนพื้นฐาน</p>
                   <p className="text-lg font-semibold">฿{Number(salary.base_salary).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Housing Allowance</p>
+                  <p className="text-sm text-muted-foreground">ค่าที่พัก</p>
                   <p className="text-lg font-semibold">฿{Number(salary.housing_allowance).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Transport Allowance</p>
+                  <p className="text-sm text-muted-foreground">ค่าเดินทาง</p>
                   <p className="text-lg font-semibold">฿{Number(salary.transport_allowance).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Other Allowances</p>
+                  <p className="text-sm text-muted-foreground">เงินช่วยเหลืออื่นๆ</p>
                   <p className="text-lg font-semibold">฿{Number(salary.other_allowances).toLocaleString()}</p>
                 </div>
               </div>
               <div className="pt-4 border-t">
-                <p className="text-sm text-muted-foreground">Effective Since</p>
-                <p className="text-lg font-semibold">{new Date(salary.effective_date).toLocaleDateString()}</p>
+                <p className="text-sm text-muted-foreground">มีผลตั้งแต่</p>
+                <p className="text-lg font-semibold">{new Date(salary.effective_date).toLocaleDateString("th-TH")}</p>
               </div>
             </div>
           ) : (
-            <p className="text-muted-foreground">No salary information available. Please contact HR.</p>
+            <p className="text-muted-foreground">ไม่มีข้อมูลเงินเดือน กรุณาติดต่อฝ่ายบุคคล</p>
           )}
         </CardContent>
       </Card>
@@ -417,50 +423,47 @@ export function PayrollReviewView() {
       {latestPayslip && (
         <Card>
           <CardHeader>
-            <CardTitle>Latest Payslip Breakdown</CardTitle>
+            <CardTitle>รายละเอียดสลิปล่าสุด</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Pay Period</p>
+                  <p className="text-sm text-muted-foreground">งวดการจ่าย</p>
                   <p className="font-semibold">
-                    {new Date(latestPayslip.pay_period_start).toLocaleDateString()} - {new Date(latestPayslip.pay_period_end).toLocaleDateString()}
+                    {new Date(latestPayslip.pay_period_start).toLocaleDateString("th-TH")} - {new Date(latestPayslip.pay_period_end).toLocaleDateString("th-TH")}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Gross Pay</p>
+                  <p className="text-sm text-muted-foreground">รายได้รวม</p>
                   <p className="font-semibold">฿{Number(latestPayslip.gross_pay).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Overtime Pay</p>
-                  <p className="font-semibold text-green-600">+฿{Number(latestPayslip.overtime_pay).toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">ภาษี</p>
+                  <p className="font-semibold text-red-600">-฿{Number(latestPayslip.tax_deduction || 0).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Tax Deduction</p>
-                  <p className="font-semibold text-red-600">-฿{Number(latestPayslip.tax_deduction).toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">ประกันสังคม</p>
+                  <p className="font-semibold text-red-600">-฿{Number(latestPayslip.social_security || 0).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Social Security</p>
-                  <p className="font-semibold text-red-600">-฿{Number(latestPayslip.social_security).toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">หักอื่นๆ</p>
+                  <p className="font-semibold text-red-600">-฿{Number(latestPayslip.other_deductions || 0).toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Other Deductions</p>
-                  <p className="font-semibold text-red-600">-฿{Number(latestPayslip.other_deductions).toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">สถานะ</p>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    latestPayslip.status === "paid"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }`}>
+                    {statusLabels[latestPayslip.status] || latestPayslip.status}
+                  </span>
                 </div>
               </div>
               <div className="pt-4 border-t flex justify-between items-center">
-                <div>
-                  <p className="text-sm text-muted-foreground">Net Pay</p>
-                  <p className="text-2xl font-bold text-primary">฿{Number(latestPayslip.net_pay).toLocaleString()}</p>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  latestPayslip.status === 'paid' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}>
-                  {latestPayslip.status.charAt(0).toUpperCase() + latestPayslip.status.slice(1)}
-                </span>
+                <span className="font-bold text-lg">เงินสุทธิ:</span>
+                <span className="font-bold text-xl text-primary">฿{Number(latestPayslip.net_pay).toLocaleString()}</span>
               </div>
             </div>
           </CardContent>
