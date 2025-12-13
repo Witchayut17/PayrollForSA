@@ -1,15 +1,23 @@
 import { 
-  LayoutDashboard, 
-  Users, 
-  Calculator, 
   FileText, 
-  Settings, 
+  History,
+  Calendar,
+  User,
   LogOut,
   Building2,
-  TrendingUp
+  ClipboardList,
+  Users,
+  UserCog,
+  BarChart3,
+  CheckCircle,
+  DollarSign,
+  BookOpen,
+  Calculator,
+  Receipt
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole, AppRole } from "@/hooks/useUserRole";
 
 interface SidebarProps {
   activeView: string;
@@ -17,17 +25,50 @@ interface SidebarProps {
   onLogout: () => void;
 }
 
-const navigation = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "employees", label: "Employees", icon: Users },
-  { id: "payroll", label: "Payroll", icon: Calculator },
+// Employee navigation
+const employeeNavigation = [
+  { id: "payroll-review", label: "Payroll Review", icon: FileText },
+  { id: "payroll-history", label: "Payroll History", icon: History },
+  { id: "leave-ot-request", label: "Leave & OT Request", icon: Calendar },
   { id: "payslips", label: "Payslips", icon: FileText },
-  { id: "reports", label: "Reports", icon: TrendingUp },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "profile", label: "Profile", icon: User },
 ];
+
+// HR navigation
+const hrNavigation = [
+  { id: "attendance-form", label: "Attendance Form", icon: ClipboardList },
+  { id: "employee-list", label: "Employee List", icon: Users },
+  { id: "employee-management", label: "Employee Management", icon: UserCog },
+  { id: "hr-report", label: "HR Report", icon: BarChart3 },
+  { id: "leave-ot-approval", label: "Leave & OT Approval", icon: CheckCircle },
+];
+
+// Accountant navigation
+const accountantNavigation = [
+  { id: "finance-report", label: "Finance Report", icon: DollarSign },
+  { id: "payroll-accounting", label: "Payroll Accounting", icon: BookOpen },
+  { id: "payroll-review", label: "Payroll Review", icon: FileText },
+  { id: "salary-calculator", label: "Salary Calculator", icon: Calculator },
+  { id: "tax-report", label: "Tax Report", icon: Receipt },
+];
+
+function getNavigationByRole(role: AppRole | null) {
+  switch (role) {
+    case "hr":
+      return hrNavigation;
+    case "accountant":
+      return accountantNavigation;
+    case "employee":
+    default:
+      return employeeNavigation;
+  }
+}
 
 export function Sidebar({ activeView, onNavigate, onLogout }: SidebarProps) {
   const { user } = useAuth();
+  const { role } = useUserRole();
+  
+  const navigation = getNavigationByRole(role);
   
   const userInitials = user?.user_metadata?.full_name
     ? user.user_metadata.full_name
@@ -39,7 +80,7 @@ export function Sidebar({ activeView, onNavigate, onLogout }: SidebarProps) {
     : user?.email?.slice(0, 2).toUpperCase() || "U";
 
   const displayName = user?.user_metadata?.full_name || user?.email || "User";
-  const employeeId = user?.user_metadata?.employee_id || "Employee";
+  const roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1) : "Employee";
 
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 gradient-sidebar border-r border-sidebar-border">
@@ -84,7 +125,7 @@ export function Sidebar({ activeView, onNavigate, onLogout }: SidebarProps) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground truncate">{displayName}</p>
-              <p className="text-xs text-sidebar-foreground/60 truncate">{employeeId}</p>
+              <p className="text-xs text-sidebar-foreground/60 truncate">{roleLabel}</p>
             </div>
             <button 
               onClick={onLogout}
