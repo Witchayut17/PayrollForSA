@@ -30,7 +30,7 @@ export default function Auth() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [employeeId, setEmployeeId] = useState("");
+  
   const [dateOfBirth, setDateOfBirth] = useState("");
 
   // Password validation
@@ -115,7 +115,6 @@ export default function Auth() {
       const { error } = await signUp(registerEmail, registerPassword, {
         full_name: fullName,
         date_of_birth: dateOfBirth,
-        employee_id: employeeId,
       });
 
       if (error) {
@@ -246,18 +245,6 @@ export default function Auth() {
                     placeholder="John Doe"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="employee-id">Employee ID</Label>
-                  <Input
-                    id="employee-id"
-                    type="text"
-                    placeholder="EMP001"
-                    value={employeeId}
-                    onChange={(e) => setEmployeeId(e.target.value)}
                     required
                     disabled={isLoading}
                   />
