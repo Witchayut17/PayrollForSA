@@ -14,6 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      leave_requests: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          leave_type: string
+          reason: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          leave_type: string
+          reason?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          leave_type?: string
+          reason?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ot_requests: {
+        Row: {
+          created_at: string
+          hours: number
+          id: string
+          reason: string | null
+          request_date: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hours: number
+          id?: string
+          reason?: string | null
+          request_date: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hours?: number
+          id?: string
+          reason?: string | null
+          request_date?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payslips: {
+        Row: {
+          allowances: number | null
+          base_salary: number
+          created_at: string
+          generated_at: string
+          gross_pay: number
+          id: string
+          net_pay: number
+          other_deductions: number | null
+          overtime_pay: number | null
+          paid_at: string | null
+          pay_period_end: string
+          pay_period_start: string
+          social_security: number | null
+          status: string
+          tax_deduction: number | null
+          user_id: string
+        }
+        Insert: {
+          allowances?: number | null
+          base_salary: number
+          created_at?: string
+          generated_at?: string
+          gross_pay: number
+          id?: string
+          net_pay: number
+          other_deductions?: number | null
+          overtime_pay?: number | null
+          paid_at?: string | null
+          pay_period_end: string
+          pay_period_start: string
+          social_security?: number | null
+          status?: string
+          tax_deduction?: number | null
+          user_id: string
+        }
+        Update: {
+          allowances?: number | null
+          base_salary?: number
+          created_at?: string
+          generated_at?: string
+          gross_pay?: number
+          id?: string
+          net_pay?: number
+          other_deductions?: number | null
+          overtime_pay?: number | null
+          paid_at?: string | null
+          pay_period_end?: string
+          pay_period_start?: string
+          social_security?: number | null
+          status?: string
+          tax_deduction?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -38,6 +182,42 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      salaries: {
+        Row: {
+          base_salary: number
+          created_at: string
+          effective_date: string
+          housing_allowance: number | null
+          id: string
+          other_allowances: number | null
+          transport_allowance: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_salary?: number
+          created_at?: string
+          effective_date?: string
+          housing_allowance?: number | null
+          id?: string
+          other_allowances?: number | null
+          transport_allowance?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_salary?: number
+          created_at?: string
+          effective_date?: string
+          housing_allowance?: number | null
+          id?: string
+          other_allowances?: number | null
+          transport_allowance?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
