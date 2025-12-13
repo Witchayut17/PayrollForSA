@@ -21,7 +21,7 @@ const settingsSections = [
     id: "users",
     icon: Users,
     title: "User Management",
-    description: "Manage admin access and permissions"
+    description: "Manage user access and permissions"
   },
   {
     id: "notifications",
