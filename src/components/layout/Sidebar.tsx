@@ -30,7 +30,6 @@ const employeeNavigation = [
   { id: "payroll-review", label: "Payroll Review", icon: FileText },
   { id: "payroll-history", label: "Payroll History", icon: History },
   { id: "leave-ot-request", label: "Leave & OT Request", icon: Calendar },
-  { id: "payslips", label: "Payslips", icon: FileText },
   { id: "profile", label: "Profile", icon: User },
 ];
 
