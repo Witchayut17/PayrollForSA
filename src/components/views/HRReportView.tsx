@@ -2,11 +2,13 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, Printer } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { FileText, Printer, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend } from "date-fns";
 
@@ -21,11 +23,17 @@ interface EmployeeReportData {
   ot_hours: number;
   bonus: number;
   commission: number;
+  payslip_id: string | null;
 }
 
 export function HRReportView() {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(format(currentDate, "yyyy-MM"));
+  const [editingEmployee, setEditingEmployee] = useState<EmployeeReportData | null>(null);
+  const [bonusValue, setBonusValue] = useState("");
+  const [commissionValue, setCommissionValue] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
 
   const monthStart = startOfMonth(new Date(selectedMonth));
   const monthEnd = endOfMonth(new Date(selectedMonth));
@@ -124,11 +132,75 @@ export function HRReportView() {
       ot_hours: empOT.reduce((sum, o) => sum + Number(o.hours), 0),
       bonus: Number(empPayslip?.bonus || 0),
       commission: Number(empPayslip?.commission || 0),
+      payslip_id: empPayslip?.id || null,
     };
   });
 
+  const handleEditClick = (emp: EmployeeReportData) => {
+    setEditingEmployee(emp);
+    setBonusValue(emp.bonus.toString());
+    setCommissionValue(emp.commission.toString());
+  };
+
+  const handleSave = async () => {
+    if (!editingEmployee) return;
+
+    setIsSaving(true);
+    try {
+      const bonus = parseFloat(bonusValue) || 0;
+      const commission = parseFloat(commissionValue) || 0;
+
+      if (editingEmployee.payslip_id) {
+        // Update existing payslip
+        const { error } = await supabase
+          .from("payslips")
+          .update({ bonus, commission })
+          .eq("id", editingEmployee.payslip_id);
+
+        if (error) throw error;
+      } else {
+        // Get salary info first
+        const { data: salaryData } = await supabase
+          .from("salaries")
+          .select("*")
+          .eq("user_id", editingEmployee.id)
+          .order("effective_date", { ascending: false })
+          .limit(1)
+          .single();
+
+        const baseSalary = salaryData?.base_salary || 0;
+        const allowances = (salaryData?.housing_allowance || 0) + 
+                          (salaryData?.transport_allowance || 0) + 
+                          (salaryData?.other_allowances || 0);
+
+        // Create new payslip with bonus/commission
+        const { error } = await supabase.from("payslips").insert({
+          user_id: editingEmployee.id,
+          pay_period_start: format(monthStart, "yyyy-MM-dd"),
+          pay_period_end: format(monthEnd, "yyyy-MM-dd"),
+          base_salary: baseSalary,
+          allowances,
+          bonus,
+          commission,
+          gross_pay: baseSalary + allowances + bonus + commission,
+          net_pay: baseSalary + allowances + bonus + commission,
+          status: "pending",
+        });
+
+        if (error) throw error;
+      }
+
+      toast.success("Bonus and commission updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["payslips-report", selectedMonth] });
+      setEditingEmployee(null);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const generatePDF = () => {
-    // Create printable HTML content
     const printContent = `
       <!DOCTYPE html>
       <html>
@@ -204,7 +276,6 @@ export function HRReportView() {
       </html>
     `;
 
-    // Open print dialog
     const printWindow = window.open("", "_blank");
     if (printWindow) {
       printWindow.document.write(printContent);
@@ -269,6 +340,7 @@ export function HRReportView() {
                   <TableHead className="text-center">OT Hours</TableHead>
                   <TableHead className="text-right">Bonus</TableHead>
                   <TableHead className="text-right">Commission</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -283,11 +355,20 @@ export function HRReportView() {
                     <TableCell className="text-center">{emp.ot_hours}</TableCell>
                     <TableCell className="text-right">฿{emp.bonus.toLocaleString()}</TableCell>
                     <TableCell className="text-right">฿{emp.commission.toLocaleString()}</TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditClick(emp)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {reportData.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center text-muted-foreground">
                       No data available
                     </TableCell>
                   </TableRow>
@@ -320,6 +401,53 @@ export function HRReportView() {
           </Card>
         </CardContent>
       </Card>
+
+      {/* Edit Bonus/Commission Dialog */}
+      <Dialog open={!!editingEmployee} onOpenChange={(open) => !open && setEditingEmployee(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Bonus & Commission</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Employee</p>
+              <p className="font-medium">{editingEmployee?.full_name} ({editingEmployee?.employee_id})</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Period</p>
+              <p className="font-medium">{format(monthStart, "MMMM yyyy")}</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bonus">Bonus (฿)</Label>
+              <Input
+                id="bonus"
+                type="number"
+                value={bonusValue}
+                onChange={(e) => setBonusValue(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="commission">Commission (฿)</Label>
+              <Input
+                id="commission"
+                type="number"
+                value={commissionValue}
+                onChange={(e) => setCommissionValue(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingEmployee(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
