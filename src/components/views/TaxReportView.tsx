@@ -220,18 +220,6 @@ export function TaxReportView() {
         </CardContent>
       </Card>
 
-      {/* Compliance Notes */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Compliance Notes</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>• Tax withholdings are calculated based on progressive tax brackets as per government regulations.</p>
-          <p>• Social security contributions are capped at the maximum monthly contribution limit.</p>
-          <p>• This report can be exported for submission to relevant government agencies.</p>
-          <p>• Report Period: {format(monthStart, "MMMM d, yyyy")} - {format(monthEnd, "MMMM d, yyyy")}</p>
-        </CardContent>
-      </Card>
     </div>
   );
 }
