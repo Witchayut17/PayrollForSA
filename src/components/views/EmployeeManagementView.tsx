@@ -84,16 +84,31 @@ export function EmployeeManagementView() {
 
   const deleteEmployee = useMutation({
     mutationFn: async (id: string) => {
-      // Note: This will cascade delete due to FK constraints
-      const { error } = await supabase.auth.admin.deleteUser(id);
-      if (error) throw error;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("ไม่ได้เข้าสู่ระบบ");
+
+      const response = await fetch(
+        `https://hzzglqdqpxeyyaesrnwr.supabase.co/functions/v1/delete-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ userId: id }),
+        }
+      );
+
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "ลบผู้ใช้ไม่สำเร็จ");
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast.success("ลบพนักงานสำเร็จ");
     },
-    onError: () => {
-      toast.error("ไม่สามารถลบผู้ใช้จากฝั่งลูกค้าได้ ต้องใช้สิทธิ์ผู้ดูแลระบบ");
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 
