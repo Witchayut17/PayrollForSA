@@ -205,6 +205,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          bank_account_number: string | null
+          bank_name: string | null
           created_at: string
           date_of_birth: string | null
           employee_id: string | null
@@ -213,6 +215,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          bank_account_number?: string | null
+          bank_name?: string | null
           created_at?: string
           date_of_birth?: string | null
           employee_id?: string | null
@@ -221,6 +225,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          bank_account_number?: string | null
+          bank_name?: string | null
           created_at?: string
           date_of_birth?: string | null
           employee_id?: string | null

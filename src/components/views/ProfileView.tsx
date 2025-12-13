@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Save, Mail, Calendar, IdCard } from "lucide-react";
+import { User, Save, Mail, Calendar, IdCard, Building2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +16,10 @@ export function ProfileView() {
   
   const [fullName, setFullName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [bankAccountNumber, setBankAccountNumber] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingBank, setIsEditingBank] = useState(false);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile", user?.id],
@@ -37,6 +40,8 @@ export function ProfileView() {
     if (profile) {
       setFullName(profile.full_name || "");
       setDateOfBirth(profile.date_of_birth || "");
+      setBankName(profile.bank_name || "");
+      setBankAccountNumber(profile.bank_account_number || "");
     }
   }, [profile]);
 
@@ -62,9 +67,36 @@ export function ProfileView() {
     },
   });
 
+  const updateBankInfo = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          bank_name: bankName || null,
+          bank_account_number: bankAccountNumber || null,
+        })
+        .eq("id", user!.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      setIsEditingBank(false);
+      toast.success("Bank information updated successfully!");
+    },
+    onError: (error) => {
+      toast.error("Failed to update bank info: " + error.message);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfile.mutate();
+  };
+
+  const handleBankSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateBankInfo.mutate();
   };
 
   return (
@@ -195,6 +227,89 @@ export function ProfileView() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Bank Information */}
+        <Card className="md:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Bank Account Information
+            </CardTitle>
+            {!isEditingBank && (
+              <Button variant="outline" size="sm" onClick={() => setIsEditingBank(true)}>
+                Edit
+              </Button>
+            )}
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ) : isEditingBank ? (
+              <form onSubmit={handleBankSubmit} className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="bankName">Bank Name</Label>
+                    <Input
+                      id="bankName"
+                      value={bankName}
+                      onChange={(e) => setBankName(e.target.value)}
+                      placeholder="e.g., Bangkok Bank, Kasikorn Bank"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bankAccountNumber">Account Number</Label>
+                    <Input
+                      id="bankAccountNumber"
+                      value={bankAccountNumber}
+                      onChange={(e) => setBankAccountNumber(e.target.value)}
+                      placeholder="Enter your bank account number"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={updateBankInfo.isPending}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {updateBankInfo.isPending ? "Saving..." : "Save Bank Info"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsEditingBank(false);
+                      setBankName(profile?.bank_name || "");
+                      setBankAccountNumber(profile?.bank_account_number || "");
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex items-center gap-3">
+                  <Building2 className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Bank Name</p>
+                    <p className="font-medium">{profile?.bank_name || "Not set"}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <IdCard className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Account Number</p>
+                    <p className="font-medium font-mono">{profile?.bank_account_number || "Not set"}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground mt-4">
+              Your bank account information is used for salary payment processing.
+            </p>
           </CardContent>
         </Card>
       </div>
