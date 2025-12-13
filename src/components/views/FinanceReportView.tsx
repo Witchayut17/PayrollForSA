@@ -301,11 +301,6 @@ export function FinanceReportView() {
         </CardContent>
       </Card>
 
-      {/* Report Footer */}
-      <div className="text-center text-sm text-muted-foreground border-t pt-4">
-        <p>Company Finance Report for {format(monthStart, "MMMM yyyy")}</p>
-        <p>Generated on {format(new Date(), "dd MMMM yyyy, HH:mm")}</p>
-      </div>
     </div>
   );
 }
