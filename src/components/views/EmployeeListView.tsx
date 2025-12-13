@@ -43,8 +43,6 @@ export function EmployeeListView() {
 
   const getRoleBadge = (role: AppRole) => {
     switch (role) {
-      case "admin":
-        return <Badge className="bg-purple-500">Admin</Badge>;
       case "hr":
         return <Badge className="bg-blue-500">HR</Badge>;
       case "accountant":
