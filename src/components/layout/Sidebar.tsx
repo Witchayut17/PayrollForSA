@@ -46,11 +46,11 @@ const hrNavigation = [
 
 // Accountant navigation
 const accountantNavigation = [
-  { id: "hr-data", label: "ข้อมูลจาก HR", icon: Inbox },
   { id: "finance-report", label: "รายงานการเงิน", icon: DollarSign },
-  { id: "payroll-accounting", label: "บัญชีเงินเดือน", icon: BookOpen },
   { id: "payroll-review", label: "ตรวจสอบเงินเดือน", icon: FileText },
+  { id: "hr-data", label: "ข้อมูลจาก HR", icon: Inbox },
   { id: "salary-calculator", label: "คำนวณเงินเดือน", icon: Calculator },
+  { id: "payroll-accounting", label: "บัญชีเงินเดือน", icon: BookOpen },
   { id: "tax-report", label: "รายงานภาษี", icon: Receipt },
 ];
 
