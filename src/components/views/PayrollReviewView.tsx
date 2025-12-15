@@ -179,7 +179,7 @@ export function PayrollReviewView() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">เงินช่วยเหลือรวม</CardTitle>
+              <CardTitle className="text-sm font-medium">เงินเบี้ยเลี้ยงรวม</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
@@ -243,7 +243,7 @@ export function PayrollReviewView() {
                       <TableHead>รหัสพนักงาน</TableHead>
                       <TableHead>ชื่อ</TableHead>
                       <TableHead className="text-right">เงินเดือนพื้นฐาน</TableHead>
-                      <TableHead className="text-right">เงินช่วยเหลือ</TableHead>
+                      <TableHead className="text-right">เงินเบี้ยเลี้ยง</TableHead>
                       <TableHead className="text-right">รายได้รวม</TableHead>
                       <TableHead className="text-right">หักเงิน</TableHead>
                       <TableHead className="text-right">เงินสุทธิ</TableHead>
