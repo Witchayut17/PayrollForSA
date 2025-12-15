@@ -29,6 +29,7 @@ export default function Auth() {
   // Login form
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [loginRole, setLoginRole] = useState<AppRole>("employee");
 
   // Register form
   const [registerEmail, setRegisterEmail] = useState("");
@@ -53,7 +54,7 @@ export default function Auth() {
     setIsLoading(true);
 
     try {
-      const { error } = await signIn(loginEmail, loginPassword);
+      const { data, error } = await signIn(loginEmail, loginPassword);
       
       if (error) {
         toast({
@@ -61,10 +62,22 @@ export default function Auth() {
           description: error.message,
           variant: "destructive",
         });
-      } else {
+      } else if (data.user) {
+        // Update user role for demo
+        const { error: deleteError } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", data.user.id);
+
+        if (!deleteError) {
+          await supabase
+            .from("user_roles")
+            .insert({ user_id: data.user.id, role: loginRole });
+        }
+
         toast({
           title: "ยินดีต้อนรับกลับ!",
-          description: "คุณเข้าสู่ระบบสำเร็จแล้ว",
+          description: `คุณเข้าสู่ระบบสำเร็จในฐานะ ${loginRole === "employee" ? "พนักงาน" : loginRole === "hr" ? "ฝ่ายบุคคล" : "ฝ่ายบัญชี"}`,
         });
         navigate("/");
       }
@@ -234,6 +247,19 @@ export default function Auth() {
                       )}
                     </Button>
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="login-role">ตำแหน่ง (สำหรับ Demo)</Label>
+                  <Select value={loginRole} onValueChange={(value: AppRole) => setLoginRole(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="เลือกตำแหน่ง" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="employee">พนักงาน (Employee)</SelectItem>
+                      <SelectItem value="hr">ฝ่ายบุคคล (HR)</SelectItem>
+                      <SelectItem value="accountant">ฝ่ายบัญชี (Accountant)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? (
