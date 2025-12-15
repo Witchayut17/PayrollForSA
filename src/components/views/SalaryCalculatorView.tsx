@@ -14,18 +14,6 @@ import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { th } from "date-fns/locale";
 
-// Thai tax brackets (simplified)
-const calculateTax = (annualIncome: number): number => {
-  let tax = 0;
-  if (annualIncome > 5000000) tax += (annualIncome - 5000000) * 0.35;
-  if (annualIncome > 2000000) tax += Math.min(annualIncome - 2000000, 3000000) * 0.30;
-  if (annualIncome > 1000000) tax += Math.min(annualIncome - 1000000, 1000000) * 0.25;
-  if (annualIncome > 500000) tax += Math.min(annualIncome - 500000, 500000) * 0.20;
-  if (annualIncome > 300000) tax += Math.min(annualIncome - 300000, 200000) * 0.15;
-  if (annualIncome > 150000) tax += Math.min(annualIncome - 150000, 150000) * 0.05;
-  return Math.round(tax / 12); // Monthly tax
-};
-
 // Social security calculation (5% capped at 750 THB)
 const calculateSocialSecurity = (grossPay: number): number => {
   return Math.min(grossPay * 0.05, 750);
@@ -113,10 +101,8 @@ export function SalaryCalculatorView() {
       Number(salary.other_allowances || 0);
 
     const grossPay = baseSalary + allowances + overtimePay + bonus + commission;
-    const annualIncome = (baseSalary + allowances) * 12; // Estimate for tax
-    const taxDeduction = calculateTax(annualIncome);
     const socialSecurity = calculateSocialSecurity(grossPay);
-    const totalDeductions = taxDeduction + socialSecurity + otherDeductions;
+    const totalDeductions = socialSecurity + otherDeductions;
     const netPay = grossPay - totalDeductions;
 
     setCalculatedPayslip({
@@ -129,7 +115,7 @@ export function SalaryCalculatorView() {
       bonus: bonus,
       commission: commission,
       gross_pay: grossPay,
-      tax_deduction: taxDeduction,
+      tax_deduction: 0,
       social_security: socialSecurity,
       other_deductions: otherDeductions,
       net_pay: netPay,
@@ -306,12 +292,6 @@ export function SalaryCalculatorView() {
                       <TableCell className="font-bold">รายรับรวม</TableCell>
                       <TableCell className="text-right font-bold">
                         ฿{calculatedPayslip.gross_pay.toLocaleString()}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">หักภาษี</TableCell>
-                      <TableCell className="text-right text-red-600">
-                        -฿{calculatedPayslip.tax_deduction.toLocaleString()}
                       </TableCell>
                     </TableRow>
                     <TableRow>
