@@ -54,7 +54,7 @@ export default function Auth() {
 
     try {
       const { data, error } = await signIn(loginEmail, loginPassword);
-      
+
       if (error) {
         toast({
           title: "เข้าสู่ระบบไม่สำเร็จ",
@@ -195,7 +195,7 @@ export default function Auth() {
             บริษัท เปาปอนหยกฝ้ายองุ่น จำกัด
           </CardTitle>
           <CardDescription>
-            เข้าสู่ระบบเพื่อจัดการเงินเดือน
+            ระบบจัดการเงินเดือนพนักงานบริษัทเอกชน
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -374,9 +374,9 @@ export default function Auth() {
                     <p className="text-xs text-success">รหัสผ่านตรงกัน</p>
                   )}
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full" 
+                <Button
+                  type="submit"
+                  className="w-full"
                   disabled={isLoading || passwordStrength.score < 3 || registerPassword !== confirmPassword}
                 >
                   {isLoading ? (
