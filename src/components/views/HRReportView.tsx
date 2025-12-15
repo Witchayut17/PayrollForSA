@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { FileText, Printer, Pencil } from "lucide-react";
+import { FileText, Printer, Pencil, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend } from "date-fns";
 import { th } from "date-fns/locale";
@@ -34,6 +34,7 @@ export function HRReportView() {
   const [bonusValue, setBonusValue] = useState("");
   const [commissionValue, setCommissionValue] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showSendDialog, setShowSendDialog] = useState(false);
   const queryClient = useQueryClient();
 
   const monthStart = startOfMonth(new Date(selectedMonth));
@@ -287,6 +288,75 @@ export function HRReportView() {
     }
   };
 
+  // Send HR Report to Accountant - Create/Update payslips for all employees
+  const sendToAccountantMutation = useMutation({
+    mutationFn: async () => {
+      // Get all salaries
+      const { data: salaries } = await supabase
+        .from("salaries")
+        .select("*")
+        .order("effective_date", { ascending: false });
+
+      const salaryMap = new Map();
+      salaries?.forEach((s) => {
+        if (!salaryMap.has(s.user_id)) {
+          salaryMap.set(s.user_id, s);
+        }
+      });
+
+      // Process each employee
+      for (const emp of reportData) {
+        const salary = salaryMap.get(emp.id);
+        if (!salary) continue;
+
+        const baseSalary = Number(salary.base_salary);
+        const allowances =
+          Number(salary.housing_allowance || 0) +
+          Number(salary.transport_allowance || 0) +
+          Number(salary.other_allowances || 0);
+
+        // Calculate OT pay (assume 1.5x hourly rate, 8 hours/day, ~22 working days)
+        const hourlyRate = baseSalary / (8 * 22);
+        const overtimePay = Math.round(emp.ot_hours * hourlyRate * 1.5);
+
+        if (emp.payslip_id) {
+          // Update existing payslip
+          await supabase
+            .from("payslips")
+            .update({
+              overtime_pay: overtimePay,
+              bonus: emp.bonus,
+              commission: emp.commission,
+            })
+            .eq("id", emp.payslip_id);
+        } else {
+          // Create new payslip
+          await supabase.from("payslips").insert({
+            user_id: emp.id,
+            pay_period_start: format(monthStart, "yyyy-MM-dd"),
+            pay_period_end: format(monthEnd, "yyyy-MM-dd"),
+            base_salary: baseSalary,
+            allowances,
+            overtime_pay: overtimePay,
+            bonus: emp.bonus,
+            commission: emp.commission,
+            gross_pay: baseSalary + allowances + overtimePay + emp.bonus + emp.commission,
+            net_pay: baseSalary + allowances + overtimePay + emp.bonus + emp.commission,
+            status: "pending",
+          });
+        }
+      }
+    },
+    onSuccess: () => {
+      toast.success("ส่งรายงานไปยังฝ่ายบัญชีสำเร็จ! ข้อมูลพร้อมสำหรับการคำนวณเงินเดือน");
+      queryClient.invalidateQueries({ queryKey: ["payslips-report", selectedMonth] });
+      setShowSendDialog(false);
+    },
+    onError: (error: any) => {
+      toast.error("ไม่สามารถส่งรายงานได้: " + error.message);
+    },
+  });
+
   const months = Array.from({ length: 12 }, (_, i) => {
     const date = new Date(currentDate.getFullYear(), i, 1);
     return { value: format(date, "yyyy-MM"), label: format(date, "MMMM yyyy", { locale: th }) };
@@ -318,9 +388,13 @@ export function HRReportView() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={generatePDF}>
+            <Button onClick={generatePDF} variant="outline">
               <Printer className="h-4 w-4 mr-2" />
               พิมพ์ / บันทึกเป็น PDF
+            </Button>
+            <Button onClick={() => setShowSendDialog(true)}>
+              <Send className="h-4 w-4 mr-2" />
+              ส่งรายงานไปยังฝ่ายบัญชี
             </Button>
           </div>
 
@@ -445,6 +519,38 @@ export function HRReportView() {
             </Button>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send to Accountant Confirmation Dialog */}
+      <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>ส่งรายงานไปยังฝ่ายบัญชี</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p>คุณกำลังจะส่งรายงาน HR ประจำเดือน <strong>{format(monthStart, "MMMM yyyy", { locale: th })}</strong> ไปยังฝ่ายบัญชี</p>
+            <div className="bg-muted p-4 rounded-lg space-y-2 text-sm">
+              <p><strong>ข้อมูลที่จะส่ง:</strong></p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>จำนวนพนักงาน: {reportData.length} คน</li>
+                <li>รวมชั่วโมง OT: {reportData.reduce((sum, e) => sum + e.ot_hours, 0)} ชม.</li>
+                <li>รวมโบนัส: ฿{reportData.reduce((sum, e) => sum + e.bonus, 0).toLocaleString()}</li>
+                <li>รวมคอมมิชชั่น: ฿{reportData.reduce((sum, e) => sum + e.commission, 0).toLocaleString()}</li>
+              </ul>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              ระบบจะสร้าง/อัปเดตข้อมูลเงินเดือนรอดำเนินการสำหรับฝ่ายบัญชีใช้คำนวณ
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSendDialog(false)}>
+              ยกเลิก
+            </Button>
+            <Button onClick={() => sendToAccountantMutation.mutate()} disabled={sendToAccountantMutation.isPending}>
+              {sendToAccountantMutation.isPending ? "กำลังส่ง..." : "ยืนยันและส่ง"}
             </Button>
           </DialogFooter>
         </DialogContent>
