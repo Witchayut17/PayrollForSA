@@ -6,10 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { validatePassword } from "@/lib/passwordValidation";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+
+type AppRole = Database["public"]["Enums"]["app_role"];
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -30,8 +35,8 @@ export default function Auth() {
   const [registerPassword, setRegisterPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  
   const [dateOfBirth, setDateOfBirth] = useState("");
+  const [selectedRole, setSelectedRole] = useState<AppRole>("employee");
 
   // Password validation
   const passwordStrength = validatePassword(registerPassword);
@@ -112,7 +117,7 @@ export default function Auth() {
     }
 
     try {
-      const { error } = await signUp(registerEmail, registerPassword, {
+      const { data, error } = await signUp(registerEmail, registerPassword, {
         full_name: fullName,
         date_of_birth: dateOfBirth,
       });
@@ -131,7 +136,16 @@ export default function Auth() {
             variant: "destructive",
           });
         }
-      } else {
+      } else if (data.user) {
+        // Insert role for new user
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .insert({ user_id: data.user.id, role: selectedRole });
+
+        if (roleError) {
+          console.error("Error assigning role:", roleError);
+        }
+
         toast({
           title: "ลงทะเบียนสำเร็จ!",
           description: "กรุณาตรวจสอบอีเมลเพื่อยืนยันบัญชีของคุณ",
@@ -259,6 +273,19 @@ export default function Auth() {
                     required
                     disabled={isLoading}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role">ตำแหน่ง (สำหรับ Demo)</Label>
+                  <Select value={selectedRole} onValueChange={(value: AppRole) => setSelectedRole(value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="เลือกตำแหน่ง" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="employee">พนักงาน (Employee)</SelectItem>
+                      <SelectItem value="hr">ฝ่ายบุคคล (HR)</SelectItem>
+                      <SelectItem value="accountant">ฝ่ายบัญชี (Accountant)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-email">อีเมล</Label>
