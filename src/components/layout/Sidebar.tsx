@@ -13,7 +13,8 @@ import {
   DollarSign,
   BookOpen,
   Calculator,
-  Receipt
+  Receipt,
+  Inbox
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -45,6 +46,7 @@ const hrNavigation = [
 
 // Accountant navigation
 const accountantNavigation = [
+  { id: "hr-data", label: "ข้อมูลจาก HR", icon: Inbox },
   { id: "finance-report", label: "รายงานการเงิน", icon: DollarSign },
   { id: "payroll-accounting", label: "บัญชีเงินเดือน", icon: BookOpen },
   { id: "payroll-review", label: "ตรวจสอบเงินเดือน", icon: FileText },

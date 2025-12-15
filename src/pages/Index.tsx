@@ -22,6 +22,7 @@ import { LeaveOTApprovalView } from "@/components/views/LeaveOTApprovalView";
 import SalaryManagementView from "@/components/views/SalaryManagementView";
 
 // Accountant views
+import { HRDataView } from "@/components/views/HRDataView";
 import { FinanceReportView } from "@/components/views/FinanceReportView";
 import { PayrollAccountingView } from "@/components/views/PayrollAccountingView";
 import { SalaryCalculatorView } from "@/components/views/SalaryCalculatorView";
@@ -44,6 +45,7 @@ const viewTitles: Record<string, { title: string; subtitle: string }> = {
   "leave-ot-approval": { title: "อนุมัติลา/OT", subtitle: "อนุมัติคำขอลางานและ OT" },
   
   // Accountant views
+  "hr-data": { title: "ข้อมูลจาก HR", subtitle: "ดูข้อมูลที่ HR ส่งมาสำหรับคำนวณเงินเดือน" },
   "finance-report": { title: "รายงานการเงิน", subtitle: "ดูรายงานการเงิน" },
   "payroll-accounting": { title: "บัญชีเงินเดือน", subtitle: "จัดการบัญชีเงินเดือน" },
   "salary-calculator": { title: "คำนวณเงินเดือน", subtitle: "คำนวณเงินเดือนพนักงาน" },
@@ -55,7 +57,7 @@ function getDefaultView(role: string | null) {
     case "hr":
       return "attendance-form";
     case "accountant":
-      return "finance-report";
+      return "hr-data";
     case "employee":
     default:
       return "payroll-review";
@@ -116,6 +118,8 @@ const Index = () => {
         return <LeaveOTApprovalView />;
       
       // Accountant views
+      case "hr-data":
+        return <HRDataView />;
       case "finance-report":
         return <FinanceReportView />;
       case "payroll-accounting":
