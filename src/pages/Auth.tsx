@@ -37,7 +37,6 @@ export default function Auth() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
-  const [selectedRole, setSelectedRole] = useState<AppRole>("employee");
 
   // Password validation
   const passwordStrength = validatePassword(registerPassword);
@@ -150,10 +149,10 @@ export default function Auth() {
           });
         }
       } else if (data.user) {
-        // Insert role for new user
+        // Insert default role for new user
         const { error: roleError } = await supabase
           .from("user_roles")
-          .insert({ user_id: data.user.id, role: selectedRole });
+          .insert({ user_id: data.user.id, role: "employee" as AppRole });
 
         if (roleError) {
           console.error("Error assigning role:", roleError);
@@ -299,19 +298,6 @@ export default function Auth() {
                     required
                     disabled={isLoading}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">ตำแหน่ง (สำหรับ Demo)</Label>
-                  <Select value={selectedRole} onValueChange={(value: AppRole) => setSelectedRole(value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="เลือกตำแหน่ง" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="employee">พนักงาน (Employee)</SelectItem>
-                      <SelectItem value="hr">ฝ่ายบุคคล (HR)</SelectItem>
-                      <SelectItem value="accountant">ฝ่ายบัญชี (Accountant)</SelectItem>
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="register-email">อีเมล</Label>
