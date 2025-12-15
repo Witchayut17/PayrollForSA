@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DollarSign, TrendingUp, TrendingDown, Printer, Building2, PieChart, Download } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Printer, Building2, PieChart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -66,38 +66,6 @@ export function FinanceReportView() {
     window.print();
   };
 
-  const handleExport = () => {
-    const reportData = [
-      ["รายงานการเงินบริษัท", format(monthStart, "MMMM yyyy", { locale: th })],
-      [""],
-      ["สรุปรายได้"],
-      ["หมวดหมู่", "จำนวนเงิน (บาท)", "% ของรวม"],
-      ...expenseCategories.map(cat => [cat.name, cat.amount.toString(), `${cat.percentage}%`]),
-      ["รวมเงินเดือนทั้งหมด", totalGrossPay.toString(), "100%"],
-      [""],
-      ["สรุปการหักเงิน"],
-      ["ประกันสังคม", totalSocialSecurity.toString()],
-      ["หักอื่นๆ", totalOtherDeductions.toString()],
-      ["รวมการหักเงิน", totalDeductions.toString()],
-      [""],
-      ["ยอดจ่ายสุทธิ", totalNetPay.toString()],
-      [""],
-      ["สรุปบุคลากร"],
-      ["จำนวนพนักงานทั้งหมด", employeeCount.toString()],
-      ["จ่ายแล้ว", paidCount.toString()],
-      ["รอดำเนินการ", pendingCount.toString()],
-    ];
-
-    const csvContent = reportData.map(row => row.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `รายงานการเงิน-${selectedMonth}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -118,10 +86,6 @@ export function FinanceReportView() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={handleExport} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            ส่งออก CSV
-          </Button>
           <Button onClick={handlePrint} variant="outline">
             <Printer className="h-4 w-4 mr-2" />
             พิมพ์

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Receipt, Printer, Download } from "lucide-react";
+import { Receipt, Printer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -56,33 +56,6 @@ export function TaxReportView() {
     window.print();
   };
 
-  const handleExport = () => {
-    const reportData = payslips?.map((payslip) => {
-      const profile = profileMap.get(payslip.user_id);
-      return {
-        "รหัสพนักงาน": profile?.employee_id || "",
-        "ชื่อ-นามสกุล": profile?.full_name || "",
-        "รายรับรวม": Number(payslip.gross_pay),
-        "หักภาษี": Number(payslip.tax_deduction || 0),
-        "ประกันสังคม": Number(payslip.social_security || 0),
-        "รวมการหัก": Number(payslip.tax_deduction || 0) + Number(payslip.social_security || 0),
-      };
-    });
-
-    const csv = [
-      Object.keys(reportData?.[0] || {}).join(","),
-      ...(reportData?.map((row) => Object.values(row).join(",")) || []),
-    ].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `รายงานภาษี-${selectedMonth}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -103,10 +76,6 @@ export function TaxReportView() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={handleExport} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            ส่งออก CSV
-          </Button>
           <Button onClick={handlePrint} variant="outline">
             <Printer className="h-4 w-4 mr-2" />
             พิมพ์
