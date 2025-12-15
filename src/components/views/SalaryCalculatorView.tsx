@@ -343,7 +343,7 @@ export function SalaryCalculatorView() {
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">ภาษีหัก ณ ที่จ่าย</TableCell>
+                      <TableCell className="font-medium">ภาษีหัก ณ ที่จ่าย (รายปี÷12)</TableCell>
                       <TableCell className="text-right text-red-600">
                         -฿{calculatedPayslip.tax_deduction.toLocaleString()}
                       </TableCell>
