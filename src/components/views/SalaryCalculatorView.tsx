@@ -143,7 +143,7 @@ export function SalaryCalculatorView() {
 
     const grossPay = baseSalary + allowances + overtimePay + bonus + commission;
     const socialSecurity = calculateSocialSecurity(baseSalary);
-    const taxDeduction = calculateMonthlyTax(grossPay);
+    const taxDeduction = calculateMonthlyTax(baseSalary);
     const totalDeductions = socialSecurity + taxDeduction + otherDeductions;
     const netPay = grossPay - totalDeductions;
 
