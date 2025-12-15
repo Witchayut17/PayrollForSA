@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { BookOpen, Send, Check, Download, Building2 } from "lucide-react";
+import { BookOpen, Send, Check, Download, Building2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +19,8 @@ export function PayrollAccountingView() {
   const [selectedMonth, setSelectedMonth] = useState(format(currentDate, "yyyy-MM"));
   const [selectedPayslips, setSelectedPayslips] = useState<string[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [payslipToDelete, setPayslipToDelete] = useState<string | null>(null);
 
   const months = Array.from({ length: 12 }, (_, i) => {
     const date = subMonths(currentDate, i);
@@ -75,6 +77,37 @@ export function PayrollAccountingView() {
       toast.error("ไม่สามารถประมวลผลเงินเดือนได้: " + error.message);
     },
   });
+
+  const deletePayslipMutation = useMutation({
+    mutationFn: async (payslipId: string) => {
+      const { error } = await supabase
+        .from("payslips")
+        .delete()
+        .eq("id", payslipId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payroll-accounting"] });
+      setShowDeleteDialog(false);
+      setPayslipToDelete(null);
+      toast.success("ลบรายการเงินเดือนสำเร็จ");
+    },
+    onError: (error) => {
+      toast.error("ไม่สามารถลบรายการได้: " + error.message);
+    },
+  });
+
+  const handleDeletePayslip = (id: string) => {
+    setPayslipToDelete(id);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (payslipToDelete) {
+      deletePayslipMutation.mutate(payslipToDelete);
+    }
+  };
 
   const pendingPayslips = payslips?.filter((p) => p.status === "pending") || [];
   const paidPayslips = payslips?.filter((p) => p.status === "paid") || [];
@@ -243,6 +276,7 @@ export function PayrollAccountingView() {
                   <TableHead className="text-right">เงินรวม</TableHead>
                   <TableHead className="text-right">หักเงิน</TableHead>
                   <TableHead className="text-right">เงินสุทธิ</TableHead>
+                  <TableHead className="w-12">ลบ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -288,6 +322,16 @@ export function PayrollAccountingView() {
                       <TableCell className="text-right font-semibold text-primary">
                         ฿{Number(payslip.net_pay).toLocaleString()}
                       </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => handleDeletePayslip(payslip.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -317,6 +361,7 @@ export function PayrollAccountingView() {
                   <TableHead>งวดการจ่าย</TableHead>
                   <TableHead className="text-right">เงินสุทธิ</TableHead>
                   <TableHead>จ่ายเมื่อ</TableHead>
+                  <TableHead className="w-12">ลบ</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -352,6 +397,16 @@ export function PayrollAccountingView() {
                       </TableCell>
                       <TableCell>
                         {payslip.paid_at ? format(new Date(payslip.paid_at), "d MMM yyyy HH:mm", { locale: th }) : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => handleDeletePayslip(payslip.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -426,6 +481,31 @@ export function PayrollAccountingView() {
             </Button>
             <Button onClick={() => processPaymentMutation.mutate(selectedPayslips)} disabled={processPaymentMutation.isPending}>
               {processPaymentMutation.isPending ? "กำลังประมวลผล..." : "ยืนยันและประมวลผล"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>ยืนยันการลบรายการ</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p>คุณต้องการลบรายการเงินเดือนนี้ใช่หรือไม่?</p>
+            <p className="text-sm text-muted-foreground mt-2">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              ยกเลิก
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDelete} 
+              disabled={deletePayslipMutation.isPending}
+            >
+              {deletePayslipMutation.isPending ? "กำลังลบ..." : "ยืนยันการลบ"}
             </Button>
           </DialogFooter>
         </DialogContent>
