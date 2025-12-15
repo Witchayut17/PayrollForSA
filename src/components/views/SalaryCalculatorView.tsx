@@ -53,10 +53,18 @@ const calculateProgressiveTax = (annualIncome: number): number => {
   return tax;
 };
 
-// Calculate monthly withholding tax
-const calculateMonthlyTax = (monthlyGrossPay: number): number => {
-  const annualIncome = monthlyGrossPay * 12;
-  const annualTax = calculateProgressiveTax(annualIncome);
+// Calculate monthly withholding tax with standard deductions
+const calculateMonthlyTax = (monthlyBaseSalary: number): number => {
+  const annualIncome = monthlyBaseSalary * 12;
+  
+  // Standard deductions (ค่าลดหย่อน)
+  const expenseDeduction = Math.min(annualIncome * 0.5, 100000); // ค่าใช้จ่าย 50% ไม่เกิน 100,000
+  const personalDeduction = 60000; // ค่าลดหย่อนส่วนตัว
+  
+  // Taxable income after deductions
+  const taxableIncome = Math.max(0, annualIncome - expenseDeduction - personalDeduction);
+  
+  const annualTax = calculateProgressiveTax(taxableIncome);
   return Math.round(annualTax / 12);
 };
 
