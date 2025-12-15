@@ -36,12 +36,12 @@ const employeeNavigation = [
 
 // HR navigation
 const hrNavigation = [
-  { id: "attendance-form", label: "บันทึกเวลาทำงาน", icon: ClipboardList },
   { id: "employee-list", label: "รายชื่อพนักงาน", icon: Users },
   { id: "employee-management", label: "จัดการพนักงาน", icon: UserCog },
+  { id: "attendance-form", label: "บันทึกเวลาทำงาน", icon: ClipboardList },
+  { id: "leave-ot-approval", label: "อนุมัติลา/OT", icon: CheckCircle },
   { id: "salary-management", label: "จัดการเงินเดือน", icon: DollarSign },
   { id: "hr-report", label: "รายงาน HR", icon: BarChart3 },
-  { id: "leave-ot-approval", label: "อนุมัติลา/OT", icon: CheckCircle },
 ];
 
 // Accountant navigation
