@@ -44,10 +44,9 @@ export function FinanceReportView() {
   const totalCommission = payslips?.reduce((sum, p) => sum + Number(p.commission || 0), 0) || 0;
   const totalGrossPay = payslips?.reduce((sum, p) => sum + Number(p.gross_pay), 0) || 0;
   
-  const totalTaxDeductions = payslips?.reduce((sum, p) => sum + Number(p.tax_deduction || 0), 0) || 0;
   const totalSocialSecurity = payslips?.reduce((sum, p) => sum + Number(p.social_security || 0), 0) || 0;
   const totalOtherDeductions = payslips?.reduce((sum, p) => sum + Number(p.other_deductions || 0), 0) || 0;
-  const totalDeductions = totalTaxDeductions + totalSocialSecurity + totalOtherDeductions;
+  const totalDeductions = totalSocialSecurity + totalOtherDeductions;
   const totalNetPay = payslips?.reduce((sum, p) => sum + Number(p.net_pay), 0) || 0;
 
   const employeeCount = payslips?.length || 0;
@@ -77,8 +76,7 @@ export function FinanceReportView() {
       ["รวมเงินเดือนทั้งหมด", totalGrossPay.toString(), "100%"],
       [""],
       ["สรุปการหักเงิน"],
-      ["ภาษีหัก ณ ที่จ่าย", totalTaxDeductions.toString()],
-      ["ประกันสังคม (บริษัท)", totalSocialSecurity.toString()],
+      ["ประกันสังคม", totalSocialSecurity.toString()],
       ["หักอื่นๆ", totalOtherDeductions.toString()],
       ["รวมการหักเงิน", totalDeductions.toString()],
       [""],
@@ -159,7 +157,7 @@ export function FinanceReportView() {
             ) : (
               <div className="text-2xl font-bold">฿{totalDeductions.toLocaleString()}</div>
             )}
-            <p className="text-xs text-muted-foreground">ภาษีและประกันสังคม</p>
+            <p className="text-xs text-muted-foreground">ประกันสังคมและอื่นๆ</p>
           </CardContent>
         </Card>
 
@@ -249,10 +247,6 @@ export function FinanceReportView() {
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell>ภาษีหัก ณ ที่จ่าย</TableCell>
-                  <TableCell className="text-right">฿{totalTaxDeductions.toLocaleString()}</TableCell>
-                </TableRow>
-                <TableRow>
                   <TableCell>เงินสมทบประกันสังคม</TableCell>
                   <TableCell className="text-right">฿{totalSocialSecurity.toLocaleString()}</TableCell>
                 </TableRow>
@@ -285,7 +279,7 @@ export function FinanceReportView() {
             <div className="space-y-2 p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
               <p className="text-sm text-muted-foreground">ภาระผูกพันตามกฎหมาย</p>
               <p className="text-3xl font-bold text-red-600">฿{totalDeductions.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">ภาษีและประกันสังคม</p>
+              <p className="text-xs text-muted-foreground">ประกันสังคมและหักอื่นๆ</p>
             </div>
             <div className="space-y-2 p-4 bg-primary/10 rounded-lg">
               <p className="text-sm text-muted-foreground">กระแสเงินสดจ่ายสุทธิ</p>
