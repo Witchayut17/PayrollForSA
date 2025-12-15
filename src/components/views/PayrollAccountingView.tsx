@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { BookOpen, Send, Check, Download, Building2, Trash2 } from "lucide-react";
+import { BookOpen, Send, Check, Building2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -138,41 +138,6 @@ export function PayrollAccountingView() {
     setShowConfirmDialog(true);
   };
 
-  const handleExportBankFile = () => {
-    const selectedData = payslips?.filter((p) => selectedPayslips.includes(p.id));
-    if (!selectedData || selectedData.length === 0) {
-      toast.error("กรุณาเลือกสลิปเงินเดือนเพื่อส่งออก");
-      return;
-    }
-
-    const bankData = selectedData.map((payslip) => {
-      const profile = profileMap.get(payslip.user_id);
-      return {
-        employee_id: profile?.employee_id || "",
-        employee_name: profile?.full_name || "",
-        bank_name: profile?.bank_name || "",
-        bank_account_number: profile?.bank_account_number || "",
-        net_pay: Number(payslip.net_pay),
-        pay_period: `${payslip.pay_period_start} ถึง ${payslip.pay_period_end}`,
-      };
-    });
-
-    const csv = [
-      "รหัสพนักงาน,ชื่อพนักงาน,ชื่อธนาคาร,เลขบัญชีธนาคาร,เงินสุทธิ,งวดการจ่าย",
-      ...bankData.map((row) => 
-        `${row.employee_id},"${row.employee_name}","${row.bank_name}","${row.bank_account_number}",${row.net_pay},"${row.pay_period}"`
-      ),
-    ].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `โอนเงินธนาคาร-${selectedMonth}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("ส่งออกไฟล์โอนเงินธนาคารสำเร็จ!");
-  };
 
   // Get selected payslips details for confirmation dialog
   const selectedPayslipsDetails = payslips?.filter((p) => selectedPayslips.includes(p.id)) || [];
@@ -247,10 +212,6 @@ export function PayrollAccountingView() {
             </Button>
             <Button onClick={clearSelection} variant="outline" size="sm">
               ล้างการเลือก
-            </Button>
-            <Button onClick={handleExportBankFile} variant="outline" size="sm" disabled={selectedPayslips.length === 0}>
-              <Download className="h-4 w-4 mr-2" />
-              ส่งออกไฟล์ธนาคาร
             </Button>
             <Button onClick={handleProcessPayroll} disabled={selectedPayslips.length === 0}>
               <Send className="h-4 w-4 mr-2" />

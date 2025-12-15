@@ -14,9 +14,50 @@ import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { th } from "date-fns/locale";
 
-// Social security calculation (5% capped at 750 THB)
-const calculateSocialSecurity = (grossPay: number): number => {
-  return Math.min(grossPay * 0.05, 750);
+// Social security calculation (5% of base salary, capped at 750 THB)
+const calculateSocialSecurity = (baseSalary: number): number => {
+  return Math.min(baseSalary * 0.05, 750);
+};
+
+// Progressive tax calculation (Thai tax rates)
+// Annual tax brackets:
+// 0 - 150,000: 0%
+// 150,001 - 300,000: 5%
+// 300,001 - 500,000: 10%
+// 500,001 - 750,000: 15%
+// 750,001 - 1,000,000: 20%
+// 1,000,001 - 2,000,000: 25%
+// 2,000,001 - 5,000,000: 30%
+// 5,000,001+: 35%
+const calculateProgressiveTax = (annualIncome: number): number => {
+  let tax = 0;
+  
+  if (annualIncome <= 150000) {
+    tax = 0;
+  } else if (annualIncome <= 300000) {
+    tax = (annualIncome - 150000) * 0.05;
+  } else if (annualIncome <= 500000) {
+    tax = (150000 * 0.05) + (annualIncome - 300000) * 0.10;
+  } else if (annualIncome <= 750000) {
+    tax = (150000 * 0.05) + (200000 * 0.10) + (annualIncome - 500000) * 0.15;
+  } else if (annualIncome <= 1000000) {
+    tax = (150000 * 0.05) + (200000 * 0.10) + (250000 * 0.15) + (annualIncome - 750000) * 0.20;
+  } else if (annualIncome <= 2000000) {
+    tax = (150000 * 0.05) + (200000 * 0.10) + (250000 * 0.15) + (250000 * 0.20) + (annualIncome - 1000000) * 0.25;
+  } else if (annualIncome <= 5000000) {
+    tax = (150000 * 0.05) + (200000 * 0.10) + (250000 * 0.15) + (250000 * 0.20) + (1000000 * 0.25) + (annualIncome - 2000000) * 0.30;
+  } else {
+    tax = (150000 * 0.05) + (200000 * 0.10) + (250000 * 0.15) + (250000 * 0.20) + (1000000 * 0.25) + (3000000 * 0.30) + (annualIncome - 5000000) * 0.35;
+  }
+  
+  return tax;
+};
+
+// Calculate monthly withholding tax
+const calculateMonthlyTax = (monthlyGrossPay: number): number => {
+  const annualIncome = monthlyGrossPay * 12;
+  const annualTax = calculateProgressiveTax(annualIncome);
+  return Math.round(annualTax / 12);
 };
 
 export function SalaryCalculatorView() {
@@ -101,8 +142,9 @@ export function SalaryCalculatorView() {
       Number(salary.other_allowances || 0);
 
     const grossPay = baseSalary + allowances + overtimePay + bonus + commission;
-    const socialSecurity = calculateSocialSecurity(grossPay);
-    const totalDeductions = socialSecurity + otherDeductions;
+    const socialSecurity = calculateSocialSecurity(baseSalary);
+    const taxDeduction = calculateMonthlyTax(grossPay);
+    const totalDeductions = socialSecurity + taxDeduction + otherDeductions;
     const netPay = grossPay - totalDeductions;
 
     setCalculatedPayslip({
@@ -115,7 +157,7 @@ export function SalaryCalculatorView() {
       bonus: bonus,
       commission: commission,
       gross_pay: grossPay,
-      tax_deduction: 0,
+      tax_deduction: taxDeduction,
       social_security: socialSecurity,
       other_deductions: otherDeductions,
       net_pay: netPay,
@@ -295,9 +337,15 @@ export function SalaryCalculatorView() {
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell className="font-medium">ประกันสังคม (5%)</TableCell>
+                      <TableCell className="font-medium">ประกันสังคม (5% ของเงินเดือนพื้นฐาน)</TableCell>
                       <TableCell className="text-right text-red-600">
                         -฿{calculatedPayslip.social_security.toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell className="font-medium">ภาษีหัก ณ ที่จ่าย</TableCell>
+                      <TableCell className="text-right text-red-600">
+                        -฿{calculatedPayslip.tax_deduction.toLocaleString()}
                       </TableCell>
                     </TableRow>
                     <TableRow>
